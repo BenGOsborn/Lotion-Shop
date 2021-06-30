@@ -101,22 +101,28 @@ export async function createCheckoutSession(
 
 export async function referralHook() {
     // Make sure that the API cant be called twice for the same thing otherwise a creator can make a loop where I pay them out everything
-
+    //  - The api is called off of the discount created which is not shown to anyone at all and is created on the backend and therefore is safe
+    // How will I handle refunds with this ?
     // Test this with 1 dollar payments as well to make sure that it works for them ? - make sure I can transfer small amounts to affiliates
 
     // Listen for customer.discount.created, get the percent off for the token and the checkout session ID
     // Get the checkout session from the ID and get its payment intent
     // From the payment intent get the gross profit and then get the percentage worth for this person (I can probably create them custom sign up links on the server side)
-    // Now look at the ID of the coupon and look at what connected account it belonged to, then pay this connected account their percentage of the profit
+    // Now look at the ID of the coupon and look at what connected account it belonged to, then pay this connected account their percentage of the profit FROM the charge / payment intent
 
-    const response = await stripe.paymentIntents.retrieve(
-        "pi_1J7wOeC7YoItP8TekJZ0cTn8"
-    );
+    // Store the payment intent ID, and transfer ID
+
+    const response = await stripe.customers;
 
     return response;
 }
 
-// Create an onboarding link for customers
+// Create an onboarding link for affiliates
 // NOW HOW AM I GONNA LINK THIS UP WITH THEIR UNIQUE ID ????
 // I could have a mini dashboard page that assigns them a link at the beginning and sends it to them on their sign up?
 // This would probably require me to store this on my database, I dont really want to do that
+
+export async function connectCustomer() {
+    // Connect an account to the program, create for them their own referrel code (based on their preference), and then store their data in the database
+    // We're going to create a new field in the mongo database
+}

@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { referralHook } from "../../utils/stripe";
+import { referralHook, connectCustomer } from "../../utils/stripe";
 
 export default async function hooks(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "GET") {
-        const response = await referralHook();
+        const response = await connectCustomer();
 
         res.status(200).json(response);
     } else {
