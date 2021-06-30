@@ -1,5 +1,10 @@
 import Stripe from "stripe";
 import { siteURL } from "../next.config";
+import connectMongo from "./connectMongo";
+import AffiliateSchema from "../mongooseModels/affiliate";
+
+// Connect to the database
+connectMongo();
 
 // I want to implement some sort of caching system for this to reduce load on the server with the requesting of the products and such
 
@@ -70,8 +75,8 @@ export async function createCheckoutSession(
 
     // Create the checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
-        cancel_url: `${siteURL}/cancel`,
-        success_url: `${siteURL}/success?customerID=${customerID}`,
+        cancel_url: `${siteURL}/checkout/cancel`,
+        success_url: `${siteURL}/checkout/success?customerID=${customerID}`,
         payment_method_types: ["card"],
         line_items: lineItems,
         customer: customerID,
@@ -122,7 +127,59 @@ export async function referralHook() {
 // I could have a mini dashboard page that assigns them a link at the beginning and sends it to them on their sign up?
 // This would probably require me to store this on my database, I dont really want to do that
 
-export async function connectCustomer() {
+export async function addAffiliate(promoCode: string, couponID?: string) {
     // Connect an account to the program, create for them their own referrel code (based on their preference), and then store their data in the database
-    // We're going to create a new field in the mongo database
+    // This means I must have some sort of global coupon I can apply ? (maybe this can be an environment variable ?)
+    // ----------------------------------------------------------------------------------------------------------------------
+    // Speciy the name of the affiliate link
+    // Create a new Stripe connection link off of this (and redirect the user to it - client side / server side operation)
+    // --------- Before the following, check that the account does not already exist, if it does we will use that promo code instead
+    // Create a new promo code attached to the coupon
+    // Create a new connected account IF it does not exist - however we will search the database for an account of that type and if thats the case use that acc instead
+    // ----------------------------------------------------------------------------------------------------------------------
+    // THERE COULD BE PROBLEMS WITH THIS REGARDING IF ONE OF THE OPERATIONS FAILS TOO LIKE BEFORE - MAKE SURE NOTHING CAN FAIL
+    // ----------------------------------------------------------------------------------------------------------------------
+
+    let account: Stripe.Account;
+    let promo: Stripe.PromotionCode;
+
+    // First, get the Stripe connect account for the affiliate
+
+    // Check if there is an existing promo code and thus an existing account
+    const affiliate = await AffiliateSchema.findOne({ promoCode });
+    if (affiliate) {
+        // Check if the account has submitted details, if it is, then return with an error, otherwise proceed with registration
+        account = await stripe.accounts.retrieve(affiliate.accountID);
+
+        // Check if the account has submitted details
+        if (account.details_submitted) {
+            throw new Error("This promo code already exists");
+        } else {
+            promo = await stripe.promotionCodes.retrieve(affiliate.promoCodeID);
+        }
+    } else {
+        // Make a new account since it does not exists
+        account = await stripe.accounts.create({ type: "express" }); // What kind of account do I create ? (maybe express ?)
+
+        // Make a new promo code since it does not exist
+        promo = await stripe.promotionCodes.create({
+            coupon: couponID as string,
+            code: promoCode,
+        });
+    }
+
+    // Create a new account link
+    const accountLink = await stripe.accountLinks.create({
+        account: account.id,
+        type: "account_onboarding",
+        refresh_url: `${siteURL}/affiliates/success=false`,
+        return_url: `${siteURL}/affiliates/success=true`,
+    });
+
+    // Store in the database
+
+    // Return the link
+    return accountLink.url;
+
+    // ************************** THIS ENTIRE METHOD / CODEBASE IS A MESS
 }
