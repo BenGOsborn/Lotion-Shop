@@ -12,7 +12,7 @@ export default async function connectMongo() {
     }
 
     // Connect to the database
-    const db = await mongoose.connect(process.env.MONGO_CONNECTION as string, {
+    const db = await mongoose.connect(process.env.MONGO_URI as string, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     });

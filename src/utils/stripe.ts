@@ -3,9 +3,6 @@ import { siteURL } from "../next.config";
 import connectMongo from "./connectMongo";
 import AffiliateSchema from "../mongooseModels/affiliate";
 
-// Connect to the database
-connectMongo();
-
 // I want to implement some sort of caching system for this to reduce load on the server with the requesting of the products and such
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_TEST as string, {
@@ -46,11 +43,6 @@ export async function createCheckoutSession(
 ) {
     // Declare constants
     const MAX_QUANTITY = 15;
-
-    // Check that the priceIDs exist
-    if (typeof priceIDs === "undefined" || priceIDs.length === 0) {
-        throw new Error("Missing cost IDs");
-    }
 
     // Generate the items to be featured in the checkout
     const lineItems = new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
@@ -117,6 +109,8 @@ export async function referralHook() {
 
     // Store the payment intent ID, and transfer ID
 
+    // Preferably I dont want my own customers doing this discount code themselves - WHAT IF PEOPLE MAKE THEIR OWN THEN GET PAID FOR IT
+
     const response = await stripe.customers;
 
     return response;
@@ -140,46 +134,56 @@ export async function addAffiliate(promoCode: string, couponID?: string) {
     // THERE COULD BE PROBLEMS WITH THIS REGARDING IF ONE OF THE OPERATIONS FAILS TOO LIKE BEFORE - MAKE SURE NOTHING CAN FAIL
     // ----------------------------------------------------------------------------------------------------------------------
 
-    let account: Stripe.Account;
-    let promo: Stripe.PromotionCode;
+    // Connect to the database
+    await connectMongo();
 
-    // First, get the Stripe connect account for the affiliate
+    // Get the Stripe connect account for the affiliate or create one if it does not exist
+    let accountID: string;
 
     // Check if there is an existing promo code and thus an existing account
     const affiliate = await AffiliateSchema.findOne({ promoCode });
     if (affiliate) {
         // Check if the account has submitted details, if it is, then return with an error, otherwise proceed with registration
-        account = await stripe.accounts.retrieve(affiliate.accountID);
+        const account = await stripe.accounts.retrieve(affiliate.accountID);
 
         // Check if the account has submitted details
         if (account.details_submitted) {
             throw new Error("This promo code already exists");
         } else {
-            promo = await stripe.promotionCodes.retrieve(affiliate.promoCodeID);
+            accountID = affiliate.accountID;
         }
     } else {
-        // Make a new account since it does not exists
-        account = await stripe.accounts.create({ type: "express" }); // What kind of account do I create ? (maybe express ?)
+        if (!couponID) {
+            throw new Error("Coupon ID is required");
+        }
 
-        // Make a new promo code since it does not exist
-        promo = await stripe.promotionCodes.create({
+        // Make a new account and promo code (what kind of account - express ?)
+        const account = stripe.accounts.create({ type: "express" });
+        const promo = stripe.promotionCodes.create({
             coupon: couponID as string,
             code: promoCode,
+        });
+
+        // Set the accountID and promoID
+        accountID = (await account).id;
+        const promoCodeID = (await promo).id;
+
+        // Also save this data in the database
+        await AffiliateSchema.create({
+            promoCode,
+            promoCodeID,
+            accountID,
         });
     }
 
     // Create a new account link
     const accountLink = await stripe.accountLinks.create({
-        account: account.id,
+        account: accountID,
         type: "account_onboarding",
-        refresh_url: `${siteURL}/affiliates/success=false`,
-        return_url: `${siteURL}/affiliates/success=true`,
+        refresh_url: `${siteURL}/onboarding/success=false`,
+        return_url: `${siteURL}/onboarding/success=true`,
     });
-
-    // Store in the database
 
     // Return the link
     return accountLink.url;
-
-    // ************************** THIS ENTIRE METHOD / CODEBASE IS A MESS
 }

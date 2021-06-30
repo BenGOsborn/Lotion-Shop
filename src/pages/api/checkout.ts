@@ -12,6 +12,11 @@ export default async function catalogue(
             customerID,
         }: { priceIDs: string[]; customerID: string | undefined } = req.body;
 
+        // Check that the priceIDs exist
+        if (typeof priceIDs === "undefined" || priceIDs.length === 0) {
+            throw new Error("Missing cost IDs");
+        }
+
         // Create the checkout link
         const checkoutURL = await createCheckoutSession(priceIDs, customerID);
 
