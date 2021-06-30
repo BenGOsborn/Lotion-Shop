@@ -36,24 +36,25 @@ export async function getCatalogue() {
 
 // Create a checkout session for users to pay with
 export async function createCheckoutSession(
-    costIDs?: string[],
+    priceIDs: string[],
     customerID?: string
 ) {
     // Declare constants
     const MAX_QUANTITY = 15;
 
-    // Get the catalogue of items
-    const catalogue = await getCatalogue();
+    // Check that the priceIDs exist
+    if (typeof priceIDs === "undefined" || priceIDs.length === 0) {
+        throw new Error("Missing cost IDs");
+    }
 
-    // How will I store customers ? (that is the question isnt it! (dont LOL))
-
+    // Generate the items to be featured in the checkout
     const lineItems = new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
-        catalogue.length
+        priceIDs.length
     );
 
-    for (let i = 0; i < lineItems.length; i++) {
+    for (let i = 0; i < priceIDs.length; i++) {
         lineItems[i] = {
-            price: catalogue[i].price.id,
+            price: priceIDs[i],
             quantity: 1,
             adjustable_quantity: {
                 enabled: true,
@@ -63,17 +64,24 @@ export async function createCheckoutSession(
     }
 
     // How am I going to store this customer on the frontend ? (embed something into the success URL ? BUT WHAT)
+    if (typeof customerID !== "undefined") {
+        customerID = (await stripe.customers.create()).id;
+    }
 
-    const paymentIntent = await stripe.checkout.sessions.create({
+    // Create the checkout session
+    const checkoutSession = await stripe.checkout.sessions.create({
         cancel_url: `${siteURL}/cancel`,
-        success_url: `${siteURL}/success`,
+        success_url: `${siteURL}/success?customerID=${customerID}`,
         payment_method_types: ["card"],
         line_items: lineItems,
-        customer: undefined, // Maybe this can be stored on the client and can be used for recurring purchases with them ?
+        customer: customerID,
         mode: "payment",
         shipping_address_collection: { allowed_countries: ["AU"] },
         allow_promotion_codes: true,
     });
 
-    return paymentIntent.url;
+    // Return the URL to the checkout
+    return checkoutSession.url;
 }
+
+// I can also have a seperate webhook down here forwhenever a code is used and authenticated with a unique payment ID and then I can opt to pay them out for it (this should be protected against fraud)
