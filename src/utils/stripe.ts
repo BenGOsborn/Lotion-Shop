@@ -64,7 +64,7 @@ export async function createCheckoutSession(
     }
 
     // How am I going to store this customer on the frontend ? (embed something into the success URL ? BUT WHAT)
-    if (typeof customerID !== "undefined") {
+    if (typeof customerID === "undefined") {
         customerID = (await stripe.customers.create()).id;
     }
 
@@ -75,13 +75,48 @@ export async function createCheckoutSession(
         payment_method_types: ["card"],
         line_items: lineItems,
         customer: customerID,
-        mode: "payment",
+        mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
         shipping_address_collection: { allowed_countries: ["AU"] },
         allow_promotion_codes: true,
     });
+
+    // HOW DO I ADD SHIPPING COSTS *************** (shr shipping rates in dashboard)
 
     // Return the URL to the checkout
     return checkoutSession.url;
 }
 
 // I can also have a seperate webhook down here forwhenever a code is used and authenticated with a unique payment ID and then I can opt to pay them out for it (this should be protected against fraud)
+// From there I can pay out to the connected account that the charge came from - this means that they will need their own dashboard (I THINK ? - I could pay it monthly)
+// We can onboard customers with a special onboarding link that we send to them
+
+// It would also be nice to see what purchases resulted from the different codes
+// Im trying to do this using the event history, but the problem is they are not linked together
+// Maybe there is a way to link events of a coupon added and an event of a checkout completed
+
+// I THINK THAT THE DISCOUNT APPLIED IS ONLY ON COMPLETION - THIS MEANS IT IS SAFE TO FIRE A WEBHOOK FROM ! (Now make sure the webhook is unique (server pairs or something ?))
+// However, there isnt really a way to get the discount done by the coupon, or is there?
+
+// customer.discount.created && checkout.session.completed have the same id and checkout id - can be used for identification. The checkout session links to the payment intent also
+
+export async function referralHook() {
+    // Make sure that the API cant be called twice for the same thing otherwise a creator can make a loop where I pay them out everything
+
+    // Test this with 1 dollar payments as well to make sure that it works for them ? - make sure I can transfer small amounts to affiliates
+
+    // Listen for customer.discount.created, get the percent off for the token and the checkout session ID
+    // Get the checkout session from the ID and get its payment intent
+    // From the payment intent get the gross profit and then get the percentage worth for this person (I can probably create them custom sign up links on the server side)
+    // Now look at the ID of the coupon and look at what connected account it belonged to, then pay this connected account their percentage of the profit
+
+    const response = await stripe.paymentIntents.retrieve(
+        "pi_1J7wOeC7YoItP8TekJZ0cTn8"
+    );
+
+    return response;
+}
+
+// Create an onboarding link for customers
+// NOW HOW AM I GONNA LINK THIS UP WITH THEIR UNIQUE ID ????
+// I could have a mini dashboard page that assigns them a link at the beginning and sends it to them on their sign up?
+// This would probably require me to store this on my database, I dont really want to do that
