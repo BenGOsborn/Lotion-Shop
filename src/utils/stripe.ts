@@ -141,11 +141,10 @@ export async function payReferrer(
     );
 }
 
-// Add an affiliate code
-export async function createAffiliate(
+// Initialize an affiliate OR revive a disabled affiliate account
+export async function initializeAffiliateLegacy(
     promoCode: string,
-    couponID?: string,
-    existingAccountID?: string // Experimental - used for if there is an existing account that the promo code should be created for
+    couponID: string
 ) {
     // Connect to the database
     await connectMongo();
@@ -159,14 +158,12 @@ export async function createAffiliate(
         // Check if the account has submitted details, if it is, then return with an error, otherwise proceed with registration
         const account = await stripe.accounts.retrieve(affiliate.accountID);
 
-        accountID = affiliate.accountID; // ******** TESTING
-
-        // // Check if the account has submitted details
-        // if (account.details_submitted) {
-        //     throw new Error("This promo code already exists");
-        // } else {
-        //     accountID = affiliate.accountID;
-        // }
+        // Check if the account has submitted details
+        if (account.details_submitted) {
+            throw new Error("This promo code already exists");
+        } else {
+            accountID = affiliate.accountID;
+        }
     } else {
         if (!couponID) {
             throw new Error("Coupon ID is required");
@@ -191,8 +188,6 @@ export async function createAffiliate(
         });
     }
 
-    // ******** The below line will fail if the account is invalid OR if the account already is validated
-    // ******** Therefore we should put this into as
     // Create a new account link
     const accountLink = await stripe.accountLinks.create({
         account: accountID,
@@ -205,21 +200,95 @@ export async function createAffiliate(
     return accountLink.url;
 }
 
-// // Cant delete an affiliate code - can be updated however
-// export async function changeAffiliateCodeAccount(promoCode: string) {
-//     // Is there ever an instance where two accounts can even overlap? If this is the case delete the account after assigning a new one
+// Initialize an affiliate OR revive a disabled affiliate account
+export async function initializeAffiliate(promoCode: string, couponID: string) {
+    // Make sure the promo code does not already exist
+    const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
+    if (affiliate && !affiliate.active) {
+        throw new Error("Affiliate with this ID is active");
+    }
 
-//     // Make a new account
-//     const newAccount = await stripe.accounts.create({ type: "express" });
+    // Create promises for a new promo code and account
+    const promoPromise = stripe.promotionCodes.create({
+        coupon: couponID,
+        code: promoCode,
+    });
+    const accountPromise = stripe.accounts.create({ type: "express" });
 
-//     // Update the affiliate object with the new account
-//     await AffiliateSchema.updateOne(
-//         { promoCode: promoCode },
-//         { $set: { accountID: newAccount.id } }
-//     );
+    // If there is an existing affiliate then reinitialize the values, otherwise create new ones
+    if (affiliate) {
+        // Wait for the values
+        const promo = await promoPromise;
+        const account = await accountPromise;
 
-//     // Return an account link
-// }
+        // Update the affiliate status to active and initialize the new values
+        await AffiliateSchema.updateOne(
+            { promoCode: promoCode },
+            {
+                $set: {
+                    promoCodeID: promo.id,
+                    accountID: account.id,
+                    active: true,
+                },
+            }
+        );
+    } else {
+        // Wait for the values
+        const promo = await promoPromise;
+        const account = await accountPromise;
+
+        // Create a new affiliate
+        await AffiliateSchema.create({
+            promoCode: promoCode,
+            promoCodeID: promo.id,
+            accountID: account.id,
+        });
+    }
+}
+
+// Create an onboarding link for the affiliate
+export async function onboardAffiliate(promoCode: string) {
+    // Find the database entry that has the specified promo code
+    const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
+    if (!affiliate || !affiliate.active) {
+        throw new Error("Invalid promo code");
+    }
+
+    // Create an onboarding link for the affiliate account
+    const accountLink = await stripe.accountLinks.create({
+        account: affiliate.accountID,
+        type: "account_onboarding",
+        refresh_url: `${siteURL}/onboarding/success=false`,
+        return_url: `${siteURL}/onboarding/success=true`,
+    });
+
+    // Return the onboarding link
+    return accountLink.url;
+}
+
+// Disable the affiliate
+export async function disableAffiliate(promoCode: string) {
+    // Here we want to get the database entry of the affiliate
+    const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
+    if (!affiliate || !affiliate.active) {
+        throw new Error("Invalid promo code");
+    }
+
+    // Now we want to reject the account and disable the promo code, as well as set the status to be inactive
+    const rejectAcc = stripe.accounts.reject(affiliate.accountID, {
+        reason: "other",
+    });
+    const disablePromo = stripe.promotionCodes.update(affiliate.promoCodeID, {
+        active: false,
+    });
+    const updateActive = AffiliateSchema.updateOne(
+        { promoCode: promoCode },
+        { $set: { active: false } }
+    );
+
+    // Wait for the promises
+    await Promise.all([rejectAcc, disablePromo, updateActive]);
+}
 
 // Used for testing different methods
 export async function testMethod() {

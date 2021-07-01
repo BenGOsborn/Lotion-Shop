@@ -10,7 +10,7 @@ export interface IAffiliate extends Document {
     promoCodeID: string;
     accountID: string;
     referrals: IReferral[];
-    active?: boolean;
+    active: boolean;
 }
 
 // Define the schema for each referral
