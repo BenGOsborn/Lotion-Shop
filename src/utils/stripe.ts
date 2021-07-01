@@ -3,8 +3,6 @@ import { siteURL } from "../next.config";
 import connectMongo from "./connectMongo";
 import AffiliateSchema from "../mongooseModels/affiliate";
 
-// I want to implement some sort of caching system for this to reduce load on the server with the requesting of the products and such
-
 export interface CatalogueItem {
     price: Stripe.Price;
     product: Stripe.Product;
@@ -38,6 +36,22 @@ export async function getCatalogue() {
 
     // Return the items
     return items;
+}
+
+export interface ProductDetails {
+    product: Stripe.Product;
+    prices: Stripe.Price[];
+}
+
+// Get the details for a product
+export async function getProductDetails(productID: string) {
+    // Get the data asynchoronously
+    const pricesPromise = stripe.prices.list({ limit: 100 });
+    const productPromise = stripe.products.retrieve(productID);
+
+    // Get the data from the promises
+    const product = await productPromise;
+    const prices = await pricesPromise;
 }
 
 // Create a checkout session for users to pay with
@@ -82,6 +96,9 @@ export async function createCheckoutSession(
     });
 
     // HOW DO I ADD SHIPPING COSTS *************** (shr shipping rates in dashboard)
+    // ALSO REDIRECT TO THE SITE WITH THE PI TO GET THE RECEIPT AS A PARAM
+    // AFFILIATES SHOULD BE ABLE TO SEND THEIR LINK AS A CODE - HAVE THIS AS A PARAM VIA THE 'discounts' parameter of the checkout
+    // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
 
     // Return the URL to the checkout
     return checkoutSession.url;
@@ -141,65 +158,6 @@ export async function payReferrer(
         { $push: { referrals: { paymentIntentID, transferID: transfer.id } } }
     );
 }
-
-// // Initialize an affiliate OR revive a disabled affiliate account
-// export async function initializeAffiliateLegacy(
-//     promoCode: string,
-//     couponID: string
-// ) {
-//     // Connect to the database
-//     await connectMongo();
-
-//     // Get the Stripe connect account for the affiliate or create one if it does not exist
-//     let accountID: string;
-
-//     // Check if there is an existing promo code and thus an existing account
-//     const affiliate = await AffiliateSchema.findOne({ promoCode });
-//     if (affiliate) {
-//         // Check if the account has submitted details, if it is, then return with an error, otherwise proceed with registration
-//         const account = await stripe.accounts.retrieve(affiliate.accountID);
-
-//         // Check if the account has submitted details
-//         if (account.details_submitted) {
-//             throw new Error("This promo code already exists");
-//         } else {
-//             accountID = affiliate.accountID;
-//         }
-//     } else {
-//         if (!couponID) {
-//             throw new Error("Coupon ID is required");
-//         }
-
-//         // Make a new account and promo code (what kind of account - express ?)
-//         const account = stripe.accounts.create({ type: "express" });
-//         const promo = stripe.promotionCodes.create({
-//             coupon: couponID as string,
-//             code: promoCode,
-//         });
-
-//         // Set the accountID and promoID
-//         accountID = (await account).id;
-//         const promoCodeID = (await promo).id;
-
-//         // Also save this data in the database
-//         await AffiliateSchema.create({
-//             promoCode,
-//             promoCodeID,
-//             accountID,
-//         });
-//     }
-
-//     // Create a new account link
-//     const accountLink = await stripe.accountLinks.create({
-//         account: accountID,
-//         type: "account_onboarding",
-//         refresh_url: `${siteURL}/onboarding/success=false`,
-//         return_url: `${siteURL}/onboarding/success=true`,
-//     });
-
-//     // Return the link
-//     return accountLink.url;
-// }
 
 // ********** Perform checks for different error conditions for the following
 
@@ -321,7 +279,13 @@ export async function testMethod() {
     // Maybe look at the disabled reason ?
     // Make sure this takes account for accounts that have been deleted as well (wrap in a try catch block Im assuming)
 
-    const response = await stripe.accounts.retrieve("acct_1J8Cqs2HXem9TS1I");
+    const response = await stripe.paymentIntents.retrieve(
+        "pi_1J7txZC7YoItP8TewPUhZvY7"
+    );
+
+    // const response = await stripe.charges.retrieve(
+    //     "ch_1J7tyOC7YoItP8TeMnav41P1"
+    // );
 
     return response;
 }
