@@ -105,15 +105,52 @@ export async function payReferrer(
 
     // Preferably I dont want my own customers doing this discount code themselves - WHAT IF PEOPLE MAKE THEIR OWN THEN GET PAID FOR IT
 
+    // Declare the percentage of revenue to pay out to affiliates ***** Maybe this should be calculated based on how much they spend so we dont pay out TOO much
+    const PERCENTAGE = 0.15;
+
     // Connect to the database
     await connectMongo();
 
-    // First I want to look through the database and see what promocde
+    // Get the payment intent ID from the checkout session
+    const checkoutSession = await stripe.checkout.sessions.retrieve(
+        checkoutSessionID as string
+    );
+    const paymentIntentID = checkoutSession.payment_intent as string;
 
-    // Get the response object
-    const response = await stripe;
+    // Check that this payment intent has not already been paid out
+    const existingIntent = await AffiliateSchema.findOne({
+        referrals: { $elemMatch: { paymentIntentID: paymentIntentID } },
+    });
+    if (existingIntent) {
+        throw new Error("This referral has already paid out");
+    }
 
-    return response;
+    // Get the payment intent and the referral code account
+    const paymentIntentPromise = stripe.paymentIntents.retrieve(
+        checkoutSession.payment_intent as string
+    );
+    const affiliatePromise = AffiliateSchema.findOne({
+        promoCodeID: promoCodeID as string,
+    }); // What happens if it cant find an affiliate ?
+
+    // Wait for the payment intent and get the amount to pay out from it in the correct currency
+    const paymentIntent = await paymentIntentPromise;
+    const transferAmount = paymentIntent.amount * PERCENTAGE;
+    const transferCurrency = paymentIntent.currency;
+
+    // Get the affiliate and pay their account the amount
+    const affiliate = await affiliatePromise;
+    const transfer = await stripe.transfers.create({
+        amount: transferAmount,
+        currency: transferCurrency,
+        destination: affiliate?.accountID as string,
+    });
+
+    // Save the details of the payout
+    await AffiliateSchema.updateOne(
+        { promoCodeID: promoCodeID as string },
+        { $push: { referrals: { paymentIntentID, transferID: transfer.id } } }
+    );
 }
 
 // Add an affiliate and provide them with their own code

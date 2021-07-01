@@ -18,11 +18,14 @@ export default async function hook(req: NextApiRequest, res: NextApiResponse) {
         const promoCodeID = hookData.promotion_code;
         const checkoutSessionID = hookData.checkout_session;
 
+        // Verify that the parameters are defined
+        if (!promoCodeID || !checkoutSessionID) {
+            return res.status(400).end("Missing a parameter");
+        }
+
         // Transfer the funds to the referrer
         await payReferrer(promoCodeID, checkoutSessionID);
     }
-
-    console.log(hookData);
 
     return res.status(200).end("Done");
 }
