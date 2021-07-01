@@ -229,7 +229,7 @@ export async function testMethod() {
     // Maybe look at the disabled reason ?
     // Make sure this takes account for accounts that have been deleted as well (wrap in a try catch block Im assuming)
 
-    const response = await stripe.accounts.del("acct_1J8Cy42H50rwy8N0");
+    const response = await stripe.accounts.retrieve("acct_1J8Cqs2HXem9TS1I");
 
     return response;
 }

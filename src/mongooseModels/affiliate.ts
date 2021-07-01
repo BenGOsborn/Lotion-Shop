@@ -10,6 +10,7 @@ export interface IAffiliate extends Document {
     promoCodeID: string;
     accountID: string;
     referrals: IReferral[];
+    active?: boolean;
 }
 
 // Define the schema for each referral
@@ -34,6 +35,7 @@ const affiliateSchema = new mongoose.Schema(
         promoCodeID: { type: String, required: true },
         accountID: { type: String, required: true },
         referrals: [referralSchema],
+        active: { type: Boolean, default: true },
     },
     { timestamps: true }
 );
