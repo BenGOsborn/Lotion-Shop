@@ -93,19 +93,7 @@ export async function payReferrer(
     promoCodeID: Stripe.PromotionCode | string,
     checkoutSessionID: string
 ) {
-    // Make sure that the API cant be called twice for the same thing otherwise a creator can make a loop where I pay them out everything
-    //  - The api is called off of the discount created which is not shown to anyone at all and is created on the backend and therefore is safe
-    // How will I handle refunds with this ?
-    // Test this with 1 dollar payments as well to make sure that it works for them ? - make sure I can transfer small amounts to affiliates
-
-    // Listen for customer.discount.created, get the percent off for the token and the checkout session ID
-    // Get the checkout session from the ID and get its payment intent
-    // From the payment intent get the gross profit and then get the percentage worth for this person (I can probably create them custom sign up links on the server side)
-    // Now look at the ID of the coupon and look at what connected account it belonged to, then pay this connected account their percentage of the profit FROM the charge / payment intent
-
-    // Preferably I dont want my own customers doing this discount code themselves - WHAT IF PEOPLE MAKE THEIR OWN THEN GET PAID FOR IT
-
-    // Declare the percentage of revenue to pay out to affiliates ***** Maybe this should be calculated based on how much they spend so we dont pay out TOO much
+    // Declare the percentage of revenue to pay out to affiliates
     const PERCENTAGE = 0.15;
 
     // Connect to the database
@@ -155,10 +143,6 @@ export async function payReferrer(
 
 // Add an affiliate and provide them with their own code
 export async function addAffiliate(promoCode: string, couponID?: string) {
-    // ----------------------------------------------------------------------------------------------------------------------
-    // THERE COULD BE PROBLEMS WITH THIS REGARDING IF ONE OF THE OPERATIONS FAILS TOO LIKE BEFORE - MAKE SURE NOTHING CAN FAIL
-    // ----------------------------------------------------------------------------------------------------------------------
-
     // Connect to the database
     await connectMongo();
 
@@ -215,6 +199,29 @@ export async function addAffiliate(promoCode: string, couponID?: string) {
     return accountLink.url;
 }
 
-// Maybe we should have another webhook that fires on an account being disconnected from the onboarding process which voids their referral ID
-// Regardless there should be some other endpoint for what happens if an affiliate deletes their account
-// Or maybe not - the user should be given some sort of way to reconnect with their affiliate link
+// Used for testing different methods
+export async function testMethod() {
+    // So at the moment im trying to figure out some sort of way of reonboarding connected accounts that have disconnected from the platform
+    // How can I keep track of all accounts that are payable ???
+    // Maybe I can use retrieve capability ?
+    // Maybe look at the disabled reason ?
+    // Make sure this takes account for accounts that have been deleted as well (wrap in a try catch block Im assuming)
+
+    // const response = await stripe.transfers.create({
+    //     amount: 1000,
+    //     currency: "aud",
+    //     destination: "acct_1J8Crq2H4WuuJNQx",
+    // });
+
+    const response = [
+        await stripe.accounts.retrieve("acct_1J8Cy42H50rwy8N0"), // Good
+        await stripe.accounts.retrieve("acct_1J8Cqs2HXem9TS1I"), // Normal
+        await stripe.accounts.retrieve("acct_1J8Crq2H4WuuJNQx"), // Bad
+    ];
+
+    // const response = await stripe.accounts.listCapabilities(
+    //     "acct_1J8Crq2H4WuuJNQx"
+    // );
+
+    return response;
+}
