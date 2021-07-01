@@ -89,6 +89,7 @@ export async function createCheckoutSession(
 
 // Transfer funds to the referrer
 // What about paying referrers for subscriptions ?
+// ********** This also needs updating big time
 export async function payReferrer(
     promoCodeID: Stripe.PromotionCode | string,
     checkoutSessionID: string
@@ -141,67 +142,72 @@ export async function payReferrer(
     );
 }
 
-// Initialize an affiliate OR revive a disabled affiliate account
-export async function initializeAffiliateLegacy(
-    promoCode: string,
-    couponID: string
-) {
-    // Connect to the database
-    await connectMongo();
+// // Initialize an affiliate OR revive a disabled affiliate account
+// export async function initializeAffiliateLegacy(
+//     promoCode: string,
+//     couponID: string
+// ) {
+//     // Connect to the database
+//     await connectMongo();
 
-    // Get the Stripe connect account for the affiliate or create one if it does not exist
-    let accountID: string;
+//     // Get the Stripe connect account for the affiliate or create one if it does not exist
+//     let accountID: string;
 
-    // Check if there is an existing promo code and thus an existing account
-    const affiliate = await AffiliateSchema.findOne({ promoCode });
-    if (affiliate) {
-        // Check if the account has submitted details, if it is, then return with an error, otherwise proceed with registration
-        const account = await stripe.accounts.retrieve(affiliate.accountID);
+//     // Check if there is an existing promo code and thus an existing account
+//     const affiliate = await AffiliateSchema.findOne({ promoCode });
+//     if (affiliate) {
+//         // Check if the account has submitted details, if it is, then return with an error, otherwise proceed with registration
+//         const account = await stripe.accounts.retrieve(affiliate.accountID);
 
-        // Check if the account has submitted details
-        if (account.details_submitted) {
-            throw new Error("This promo code already exists");
-        } else {
-            accountID = affiliate.accountID;
-        }
-    } else {
-        if (!couponID) {
-            throw new Error("Coupon ID is required");
-        }
+//         // Check if the account has submitted details
+//         if (account.details_submitted) {
+//             throw new Error("This promo code already exists");
+//         } else {
+//             accountID = affiliate.accountID;
+//         }
+//     } else {
+//         if (!couponID) {
+//             throw new Error("Coupon ID is required");
+//         }
 
-        // Make a new account and promo code (what kind of account - express ?)
-        const account = stripe.accounts.create({ type: "express" });
-        const promo = stripe.promotionCodes.create({
-            coupon: couponID as string,
-            code: promoCode,
-        });
+//         // Make a new account and promo code (what kind of account - express ?)
+//         const account = stripe.accounts.create({ type: "express" });
+//         const promo = stripe.promotionCodes.create({
+//             coupon: couponID as string,
+//             code: promoCode,
+//         });
 
-        // Set the accountID and promoID
-        accountID = (await account).id;
-        const promoCodeID = (await promo).id;
+//         // Set the accountID and promoID
+//         accountID = (await account).id;
+//         const promoCodeID = (await promo).id;
 
-        // Also save this data in the database
-        await AffiliateSchema.create({
-            promoCode,
-            promoCodeID,
-            accountID,
-        });
-    }
+//         // Also save this data in the database
+//         await AffiliateSchema.create({
+//             promoCode,
+//             promoCodeID,
+//             accountID,
+//         });
+//     }
 
-    // Create a new account link
-    const accountLink = await stripe.accountLinks.create({
-        account: accountID,
-        type: "account_onboarding",
-        refresh_url: `${siteURL}/onboarding/success=false`,
-        return_url: `${siteURL}/onboarding/success=true`,
-    });
+//     // Create a new account link
+//     const accountLink = await stripe.accountLinks.create({
+//         account: accountID,
+//         type: "account_onboarding",
+//         refresh_url: `${siteURL}/onboarding/success=false`,
+//         return_url: `${siteURL}/onboarding/success=true`,
+//     });
 
-    // Return the link
-    return accountLink.url;
-}
+//     // Return the link
+//     return accountLink.url;
+// }
+
+// ********** Perform checks for different error conditions for the following
 
 // Initialize an affiliate OR revive a disabled affiliate account
 export async function initializeAffiliate(promoCode: string, couponID: string) {
+    // Initialize the database
+    await connectMongo();
+
     // Make sure the promo code does not already exist
     const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
     if (affiliate && !affiliate.active) {
@@ -248,6 +254,9 @@ export async function initializeAffiliate(promoCode: string, couponID: string) {
 
 // Create an onboarding link for the affiliate
 export async function onboardAffiliate(promoCode: string) {
+    // Initialize the database
+    await connectMongo();
+
     // Find the database entry that has the specified promo code
     const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
     if (!affiliate || !affiliate.active) {
@@ -268,6 +277,9 @@ export async function onboardAffiliate(promoCode: string) {
 
 // Disable the affiliate
 export async function disableAffiliate(promoCode: string) {
+    // Initialize the database
+    await connectMongo();
+
     // Here we want to get the database entry of the affiliate
     const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
     if (!affiliate || !affiliate.active) {
@@ -290,6 +302,17 @@ export async function disableAffiliate(promoCode: string) {
     await Promise.all([rejectAcc, disablePromo, updateActive]);
 }
 
+// -
+// -
+// -
+// -
+// -
+// -
+// -
+// -
+// -
+// -
+// -
 // Used for testing different methods
 export async function testMethod() {
     // So at the moment im trying to figure out some sort of way of reonboarding connected accounts that have disconnected from the platform
