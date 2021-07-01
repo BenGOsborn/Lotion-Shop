@@ -60,7 +60,7 @@ export default async function onboarding(
 
         // Verify the password
         if (password !== process.env.ADMIN_PASSWORD) {
-            return res.status(400).end("Missing parameter");
+            return res.status(403).end("Invalid password");
         }
 
         // Disable the affiliate
