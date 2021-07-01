@@ -5,6 +5,12 @@ import AffiliateSchema from "../mongooseModels/affiliate";
 
 // I want to implement some sort of caching system for this to reduce load on the server with the requesting of the products and such
 
+export interface CatalogueItem {
+    price: Stripe.Price;
+    product: Stripe.Product;
+}
+
+// Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_TEST as string, {
     apiVersion: "2020-08-27",
 });
@@ -20,9 +26,7 @@ export async function getCatalogue() {
     const products = (await productsPromise).data;
 
     // Initialize and fill the list of items
-    const items = new Array<{ price: Stripe.Price; product: Stripe.Product }>(
-        prices.length
-    );
+    const items = new Array<CatalogueItem>(prices.length);
 
     for (const [i, price] of prices.entries()) {
         for (const product of products) {
@@ -83,20 +87,12 @@ export async function createCheckoutSession(
     return checkoutSession.url;
 }
 
-// I can also have a seperate webhook down here forwhenever a code is used and authenticated with a unique payment ID and then I can opt to pay them out for it (this should be protected against fraud)
-// From there I can pay out to the connected account that the charge came from - this means that they will need their own dashboard (I THINK ? - I could pay it monthly)
-// We can onboard customers with a special onboarding link that we send to them
-
-// It would also be nice to see what purchases resulted from the different codes
-// Im trying to do this using the event history, but the problem is they are not linked together
-// Maybe there is a way to link events of a coupon added and an event of a checkout completed
-
-// I THINK THAT THE DISCOUNT APPLIED IS ONLY ON COMPLETION - THIS MEANS IT IS SAFE TO FIRE A WEBHOOK FROM ! (Now make sure the webhook is unique (server pairs or something ?))
-// However, there isnt really a way to get the discount done by the coupon, or is there?
-
-// customer.discount.created && checkout.session.completed have the same id and checkout id - can be used for identification. The checkout session links to the payment intent also
-
-export async function referralHook() {
+// Transfer funds to the referrer
+// What about paying referrers for subscriptions ?
+export async function payReferrer(
+    promoCodeID: Stripe.PromotionCode | string,
+    checkoutSessionID: string
+) {
     // Make sure that the API cant be called twice for the same thing otherwise a creator can make a loop where I pay them out everything
     //  - The api is called off of the discount created which is not shown to anyone at all and is created on the backend and therefore is safe
     // How will I handle refunds with this ?
@@ -107,29 +103,21 @@ export async function referralHook() {
     // From the payment intent get the gross profit and then get the percentage worth for this person (I can probably create them custom sign up links on the server side)
     // Now look at the ID of the coupon and look at what connected account it belonged to, then pay this connected account their percentage of the profit FROM the charge / payment intent
 
-    // Store the payment intent ID, and transfer ID
-
     // Preferably I dont want my own customers doing this discount code themselves - WHAT IF PEOPLE MAKE THEIR OWN THEN GET PAID FOR IT
 
-    const response = await stripe.customers;
+    // Connect to the database
+    await connectMongo();
+
+    // First I want to look through the database and see what promocde
+
+    // Get the response object
+    const response = await stripe;
 
     return response;
 }
 
-// Create an onboarding link for affiliates
-// NOW HOW AM I GONNA LINK THIS UP WITH THEIR UNIQUE ID ????
-// I could have a mini dashboard page that assigns them a link at the beginning and sends it to them on their sign up?
-// This would probably require me to store this on my database, I dont really want to do that
-
+// Add an affiliate and provide them with their own code
 export async function addAffiliate(promoCode: string, couponID?: string) {
-    // Connect an account to the program, create for them their own referrel code (based on their preference), and then store their data in the database
-    // This means I must have some sort of global coupon I can apply ? (maybe this can be an environment variable ?)
-    // ----------------------------------------------------------------------------------------------------------------------
-    // Speciy the name of the affiliate link
-    // Create a new Stripe connection link off of this (and redirect the user to it - client side / server side operation)
-    // --------- Before the following, check that the account does not already exist, if it does we will use that promo code instead
-    // Create a new promo code attached to the coupon
-    // Create a new connected account IF it does not exist - however we will search the database for an account of that type and if thats the case use that acc instead
     // ----------------------------------------------------------------------------------------------------------------------
     // THERE COULD BE PROBLEMS WITH THIS REGARDING IF ONE OF THE OPERATIONS FAILS TOO LIKE BEFORE - MAKE SURE NOTHING CAN FAIL
     // ----------------------------------------------------------------------------------------------------------------------
@@ -145,6 +133,8 @@ export async function addAffiliate(promoCode: string, couponID?: string) {
     if (affiliate) {
         // Check if the account has submitted details, if it is, then return with an error, otherwise proceed with registration
         const account = await stripe.accounts.retrieve(affiliate.accountID);
+
+        // If we attempt to register an affiliate that has a deleted account, make them a new Stripe account and register them with that
 
         // Check if the account has submitted details
         if (account.details_submitted) {
@@ -187,3 +177,7 @@ export async function addAffiliate(promoCode: string, couponID?: string) {
     // Return the link
     return accountLink.url;
 }
+
+// Maybe we should have another webhook that fires on an account being disconnected from the onboarding process which voids their referral ID
+// Regardless there should be some other endpoint for what happens if an affiliate deletes their account
+// Or maybe not - the user should be given some sort of way to reconnect with their affiliate link
