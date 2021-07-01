@@ -141,8 +141,12 @@ export async function payReferrer(
     );
 }
 
-// Add an affiliate and provide them with their own code
-export async function addAffiliate(promoCode: string, couponID?: string) {
+// Add an affiliate code
+export async function createAffiliate(
+    promoCode: string,
+    couponID?: string,
+    existingAccountID?: string // Experimental - used for if there is an existing account that the promo code should be created for
+) {
     // Connect to the database
     await connectMongo();
 
@@ -155,14 +159,14 @@ export async function addAffiliate(promoCode: string, couponID?: string) {
         // Check if the account has submitted details, if it is, then return with an error, otherwise proceed with registration
         const account = await stripe.accounts.retrieve(affiliate.accountID);
 
-        // If we attempt to register an affiliate that has a deleted account, make them a new Stripe account and register them with that
+        accountID = affiliate.accountID; // ******** TESTING
 
-        // Check if the account has submitted details
-        if (account.details_submitted) {
-            throw new Error("This promo code already exists");
-        } else {
-            accountID = affiliate.accountID;
-        }
+        // // Check if the account has submitted details
+        // if (account.details_submitted) {
+        //     throw new Error("This promo code already exists");
+        // } else {
+        //     accountID = affiliate.accountID;
+        // }
     } else {
         if (!couponID) {
             throw new Error("Coupon ID is required");
@@ -187,6 +191,8 @@ export async function addAffiliate(promoCode: string, couponID?: string) {
         });
     }
 
+    // ******** The below line will fail if the account is invalid OR if the account already is validated
+    // ******** Therefore we should put this into as
     // Create a new account link
     const accountLink = await stripe.accountLinks.create({
         account: accountID,
@@ -199,6 +205,22 @@ export async function addAffiliate(promoCode: string, couponID?: string) {
     return accountLink.url;
 }
 
+// // Cant delete an affiliate code - can be updated however
+// export async function changeAffiliateCodeAccount(promoCode: string) {
+//     // Is there ever an instance where two accounts can even overlap? If this is the case delete the account after assigning a new one
+
+//     // Make a new account
+//     const newAccount = await stripe.accounts.create({ type: "express" });
+
+//     // Update the affiliate object with the new account
+//     await AffiliateSchema.updateOne(
+//         { promoCode: promoCode },
+//         { $set: { accountID: newAccount.id } }
+//     );
+
+//     // Return an account link
+// }
+
 // Used for testing different methods
 export async function testMethod() {
     // So at the moment im trying to figure out some sort of way of reonboarding connected accounts that have disconnected from the platform
@@ -207,21 +229,7 @@ export async function testMethod() {
     // Maybe look at the disabled reason ?
     // Make sure this takes account for accounts that have been deleted as well (wrap in a try catch block Im assuming)
 
-    // const response = await stripe.transfers.create({
-    //     amount: 1000,
-    //     currency: "aud",
-    //     destination: "acct_1J8Crq2H4WuuJNQx",
-    // });
-
-    const response = [
-        await stripe.accounts.retrieve("acct_1J8Cy42H50rwy8N0"), // Good
-        await stripe.accounts.retrieve("acct_1J8Cqs2HXem9TS1I"), // Normal
-        await stripe.accounts.retrieve("acct_1J8Crq2H4WuuJNQx"), // Bad
-    ];
-
-    // const response = await stripe.accounts.listCapabilities(
-    //     "acct_1J8Crq2H4WuuJNQx"
-    // );
+    const response = await stripe.accounts.del("acct_1J8Cy42H50rwy8N0");
 
     return response;
 }

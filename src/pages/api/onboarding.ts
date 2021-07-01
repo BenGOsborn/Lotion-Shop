@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { addAffiliate } from "../../utils/stripe";
+import { createAffiliate } from "../../utils/stripe";
 
 export default async function onboarding(
     req: NextApiRequest,
@@ -18,7 +18,7 @@ export default async function onboarding(
         }
 
         // Get the affiliate
-        const onboardingLink = await addAffiliate(promoCode, couponID);
+        const onboardingLink = await createAffiliate(promoCode, couponID);
 
         // Return the affiliate
         res.status(200).end(onboardingLink);
