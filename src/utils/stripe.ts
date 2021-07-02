@@ -1,7 +1,8 @@
 import Stripe from "stripe";
-import { siteURL } from "../next.config";
+import { siteURL } from "./constants";
 import connectMongo from "./connectMongo";
 import AffiliateSchema from "../mongooseModels/affiliate";
+import { MAX_QUANTITY } from "./constants";
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_TEST as string, {
@@ -78,9 +79,6 @@ export async function createCheckoutSession(
     priceIDs: string[],
     customerID?: string
 ) {
-    // Declare constants
-    const MAX_QUANTITY = 15;
-
     // Generate the items to be featured in the checkout
     const lineItems = new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
         priceIDs.length
@@ -118,7 +116,8 @@ export async function createCheckoutSession(
     // ALSO REDIRECT TO THE SITE WITH THE PI TO GET THE RECEIPT AS A PARAM
     // AFFILIATES SHOULD BE ABLE TO SEND THEIR LINK AS A CODE - HAVE THIS AS A PARAM VIA THE 'discounts' parameter of the checkout
     // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
-    // Maybe also provide some way of letting the customers choose their prices on the frontend which gets sent here with the codes and filled out automatically ?
+    // Maybe also provide some way of letting the customers choose their quantities on the frontend which gets sent here with the codes and filled out automatically ?
+    // Remove the adjustable pricing - the user should decide this when they are shopping
 
     // Return the URL to the checkout
     return checkoutSession.url;

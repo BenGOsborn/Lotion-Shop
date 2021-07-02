@@ -1,11 +1,25 @@
-import { FC } from "react";
+import { FC, useState, useMemo } from "react";
+import Nav from "./nav";
+import { cartContext } from "../utils/contexts";
 
-// This is also going to contain the shopping cart as a context which will be shared accross the rest of the components
+export interface CartItem {
+    costID: string;
+    quantity: number;
+}
 
 const Layout: FC<{}> = ({ children }) => {
+    // The state of the cart to be used across components
+    const [cart, setCart] = useState<CartItem[]>([]);
+
+    // Prevent excess changes from being made
+    const value = useMemo(() => [cart, setCart], [cart, setCart]);
+
     return (
         <>
-            <main>{children}</main>
+            <cartContext.Provider value={value as any}>
+                <Nav />
+                <main>{children}</main>
+            </cartContext.Provider>
         </>
     );
 };

@@ -25,26 +25,29 @@ const Shopfront: NextPage<Props> = ({ catalogue }) => {
                     // List out the rows
                     if (i % PER_ROW === 0) {
                         return (
-                            <div>
-                                {catalogue.slice(i, i + PER_ROW).map((item) => {
-                                    return (
-                                        <DisplayCard
-                                            key={item.price.id}
-                                            name={item.product.name}
-                                            description={
-                                                item.product
-                                                    .description as string
-                                            }
-                                            images={item.product.images}
-                                            price={
-                                                item.price.unit_amount as number
-                                            }
-                                            currency={item.price.currency}
-                                            productID={item.product.id}
-                                            priceID={item.price.id}
-                                        />
-                                    );
-                                })}
+                            <div key={i}>
+                                {catalogue
+                                    .slice(i, i + PER_ROW)
+                                    .map((item, i) => {
+                                        return (
+                                            <DisplayCard
+                                                key={i}
+                                                name={item.product.name}
+                                                description={
+                                                    item.product
+                                                        .description as string
+                                                }
+                                                images={item.product.images}
+                                                price={
+                                                    item.price
+                                                        .unit_amount as number
+                                                }
+                                                currency={item.price.currency}
+                                                productID={item.product.id}
+                                                priceID={item.price.id}
+                                            />
+                                        );
+                                    })}
                             </div>
                         );
                     }

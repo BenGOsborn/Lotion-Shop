@@ -10,9 +10,7 @@ interface Props {
 }
 
 const ProductPage: NextPage<Props> = ({ productDetails }) => {
-    // Display a page for this item with image scrolls and such
-
-    return <div>Hello world</div>;
+    return <div>{JSON.stringify(productDetails)}</div>;
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -40,4 +38,5 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     return { props: { productDetails } as Props };
 };
 
+// Export the component
 export default ProductPage;
