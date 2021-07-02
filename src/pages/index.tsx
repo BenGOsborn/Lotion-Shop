@@ -1,35 +1,10 @@
 import { GetStaticProps, NextPage } from "next";
 import { CatalogueItem, getCatalogue } from "../utils/stripe";
-import ItemCard from "../components/itemCard";
+import DisplayCard from "../components/displayCard";
 
 interface Props {
     catalogue: CatalogueItem[];
 }
-
-const catalogueRows = (catalogue: CatalogueItem[]) => {
-    const ROW_LENGTH = 5;
-
-    for (let i = 0; i < catalogue.length; i += ROW_LENGTH) {
-        const slice = catalogue.slice(i, i + ROW_LENGTH);
-        return (
-            <div>
-                {slice.map((item) => {
-                    return (
-                        <ItemCard
-                            name={item.product.name}
-                            description={item.product.description as string}
-                            images={item.product.images}
-                            price={item.price.unit_amount as number}
-                            currency={item.price.currency}
-                            productID={item.product.id}
-                            priceID={item.price.id}
-                        />
-                    );
-                })}
-            </div>
-        );
-    }
-};
 
 const Shopfront: NextPage<Props> = ({ catalogue }) => {
     return (
@@ -42,7 +17,39 @@ const Shopfront: NextPage<Props> = ({ catalogue }) => {
                 </p>
                 <a href="#shop">Shop Now</a>
             </header>
-            <div id="shop">{catalogueRows(catalogue)}</div>
+            <div id="shop">
+                {catalogue.map((_, i) => {
+                    // Declare the number of items per row
+                    const PER_ROW = 4;
+
+                    // List out the rows
+                    if (i % PER_ROW === 0) {
+                        return (
+                            <div>
+                                {catalogue.slice(i, i + PER_ROW).map((item) => {
+                                    return (
+                                        <DisplayCard
+                                            key={item.price.id}
+                                            name={item.product.name}
+                                            description={
+                                                item.product
+                                                    .description as string
+                                            }
+                                            images={item.product.images}
+                                            price={
+                                                item.price.unit_amount as number
+                                            }
+                                            currency={item.price.currency}
+                                            productID={item.product.id}
+                                            priceID={item.price.id}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        );
+                    }
+                })}
+            </div>
         </>
     );
 };

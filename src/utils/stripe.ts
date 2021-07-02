@@ -3,15 +3,24 @@ import { siteURL } from "../next.config";
 import connectMongo from "./connectMongo";
 import AffiliateSchema from "../mongooseModels/affiliate";
 
-export interface CatalogueItem {
-    price: Stripe.Price;
-    product: Stripe.Product;
-}
-
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_TEST as string, {
     apiVersion: "2020-08-27",
 });
+
+// Get a list of products
+export async function getProducts() {
+    // Get a list of products
+    const products = (await stripe.products.list({ limit: 100 })).data;
+
+    // Return the list of products
+    return products;
+}
+
+export interface CatalogueItem {
+    price: Stripe.Price;
+    product: Stripe.Product;
+}
 
 // Get a list of items from the shop
 export async function getCatalogue() {

@@ -15,12 +15,12 @@ interface Props {
 
 // This will require the context for adding the products and checking if the product is already in ?
 // I also want to have the description pop up over the image when hovered
-// COnvert the img tag into image
+// Convert the img tag into image
 
-const ItemCard = (props: Props) => {
+const DisplayCard = (props: Props) => {
     return (
         <div>
-            <Link href={`/item/${props.productID}`}>
+            <Link href={`/products/${props.productID}`}>
                 <a>
                     <img
                         src={props.images[0] as any}
@@ -34,7 +34,7 @@ const ItemCard = (props: Props) => {
                     } ${props.currency.toUpperCase()}`}</h4>
                 </a>
             </Link>
-            <Link href={`/item/${props.productID}`}>View More</Link>
+            <Link href={`/products/${props.productID}`}>View More</Link>
             <a href="#" onClick={(e) => console.log(props.priceID)}>
                 Add To Cart
             </a>
@@ -42,4 +42,5 @@ const ItemCard = (props: Props) => {
     );
 };
 
-export default ItemCard;
+// Export the card
+export default DisplayCard;
