@@ -8,6 +8,10 @@ export interface CatalogueItem {
     product: Stripe.Product;
 }
 
+export interface Catalogue {
+    [index: number]: CatalogueItem;
+}
+
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_TEST as string, {
     apiVersion: "2020-08-27",
@@ -23,8 +27,8 @@ export async function getCatalogue() {
     const prices = (await pricesPromise).data;
     const products = (await productsPromise).data;
 
-    // Initialize and fill the list of items
-    const items = new Array<CatalogueItem>(prices.length);
+    // Initialize and fill the catalogue
+    const items: Catalogue = new Array<CatalogueItem>(prices.length);
 
     for (const [i, price] of prices.entries()) {
         for (const product of products) {
@@ -52,6 +56,9 @@ export async function getProductDetails(productID: string) {
     // Get the data from the promises
     const product = await productPromise;
     const prices = await pricesPromise;
+
+    // Return the data
+    return { product, prices: prices.data } as ProductDetails;
 }
 
 // Create a checkout session for users to pay with
@@ -70,7 +77,7 @@ export async function createCheckoutSession(
     for (let i = 0; i < priceIDs.length; i++) {
         lineItems[i] = {
             price: priceIDs[i],
-            quantity: 1,
+            quantity: Math.min(1, MAX_QUANTITY), // This max is in place for custom amounts of items specified by the user
             adjustable_quantity: {
                 enabled: true,
                 maximum: MAX_QUANTITY,
@@ -99,6 +106,7 @@ export async function createCheckoutSession(
     // ALSO REDIRECT TO THE SITE WITH THE PI TO GET THE RECEIPT AS A PARAM
     // AFFILIATES SHOULD BE ABLE TO SEND THEIR LINK AS A CODE - HAVE THIS AS A PARAM VIA THE 'discounts' parameter of the checkout
     // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
+    // Maybe also provide some way of letting the customers choose their prices on the frontend which gets sent here with the codes and filled out automatically ?
 
     // Return the URL to the checkout
     return checkoutSession.url;
@@ -279,13 +287,15 @@ export async function testMethod() {
     // Maybe look at the disabled reason ?
     // Make sure this takes account for accounts that have been deleted as well (wrap in a try catch block Im assuming)
 
-    const response = await stripe.paymentIntents.retrieve(
-        "pi_1J7txZC7YoItP8TewPUhZvY7"
-    );
-
-    // const response = await stripe.charges.retrieve(
-    //     "ch_1J7tyOC7YoItP8TeMnav41P1"
+    // const response = await stripe.paymentIntents.retrieve(
+    //     "pi_1J7txZC7YoItP8TewPUhZvY7"
     // );
+
+    // const response = stripe.prices.list({ limit: 100 });
+
+    const response = await stripe.charges.retrieve(
+        "ch_1J7tyOC7YoItP8TeMnav41P1"
+    );
 
     return response;
 }
