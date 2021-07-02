@@ -8,10 +8,6 @@ export interface CatalogueItem {
     product: Stripe.Product;
 }
 
-export interface Catalogue {
-    [index: number]: CatalogueItem;
-}
-
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_TEST as string, {
     apiVersion: "2020-08-27",
@@ -28,7 +24,7 @@ export async function getCatalogue() {
     const products = (await productsPromise).data;
 
     // Initialize and fill the catalogue
-    const items: Catalogue = new Array<CatalogueItem>(prices.length);
+    const items = new Array<CatalogueItem>(prices.length);
 
     for (const [i, price] of prices.entries()) {
         for (const product of products) {
@@ -55,10 +51,17 @@ export async function getProductDetails(productID: string) {
 
     // Get the data from the promises
     const product = await productPromise;
-    const prices = await pricesPromise;
+
+    // Get the prices that belong to the product
+    const prices: Stripe.Price[] = [];
+    for (const price of (await pricesPromise).data) {
+        if (price.product === productID) {
+            prices.push(price);
+        }
+    }
 
     // Return the data
-    return { product, prices: prices.data } as ProductDetails;
+    return { product, prices: prices } as ProductDetails;
 }
 
 // Create a checkout session for users to pay with
