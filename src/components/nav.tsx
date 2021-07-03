@@ -20,13 +20,14 @@ const Nav = () => {
 
     return (
         <nav>
-            <h2>
-                <Link href="/">Lotion Shop</Link>
-            </h2>
+            <Link href="/">
+                <a>
+                    <h1>Lotion Shop</h1>
+                </a>
+            </Link>
+
+            {/* Once there are more items in the shop, create a new web page with the full catalogue FROM the home page, and replace the one on the homepage with the product banner */}
             <ul>
-                <li>
-                    <Link href="/shop">Shop</Link>
-                </li>
                 <li>
                     <Link href="/checkout">{`View Cart (${
                         total === 0 ? "empty" : total
