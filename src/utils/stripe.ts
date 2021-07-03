@@ -3,6 +3,7 @@ import { siteURL } from "./constants";
 import connectMongo from "./connectMongo";
 import AffiliateSchema from "../mongooseModels/affiliate";
 import { MAX_QUANTITY } from "./constants";
+import { CartItem } from "../components/layout";
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_TEST as string, {
@@ -44,6 +45,8 @@ export async function getCatalogue() {
         }
     }
 
+    // ****** We should filter items out that have one or the other not active
+
     // Return the items
     return items;
 }
@@ -70,28 +73,33 @@ export async function getProductDetails(productID: string) {
         }
     }
 
+    // ****** We should filter items out that have one or the other not active
+
     // Return the data
     return { product, prices: prices } as ProductDetails;
 }
 
+export interface CheckoutResponse {
+    url: string;
+    id: string;
+}
+
 // Create a checkout session for users to pay with
+// Make this accept cart ****** Items instead
 export async function createCheckoutSession(
-    priceIDs: string[],
+    items: CartItem[],
+    // promoCode?: string,
     customerID?: string
 ) {
     // Generate the items to be featured in the checkout
     const lineItems = new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
-        priceIDs.length
+        items.length
     );
 
-    for (let i = 0; i < priceIDs.length; i++) {
+    for (let i = 0; i < items.length; i++) {
         lineItems[i] = {
-            price: priceIDs[i],
-            quantity: Math.min(1, MAX_QUANTITY), // This max is in place for custom amounts of items specified by the user
-            adjustable_quantity: {
-                enabled: true,
-                maximum: MAX_QUANTITY,
-            },
+            price: items[i].priceID,
+            quantity: Math.min(items[i].quantity, MAX_QUANTITY), // This max is in place for custom amounts of items specified by the user
         };
     }
 
@@ -99,6 +107,8 @@ export async function createCheckoutSession(
     if (typeof customerID === "undefined") {
         customerID = (await stripe.customers.create()).id;
     }
+
+    // If there is a promo code then make this session into one with the discount already applied INSIDE of a cookie (valid for 5 days)
 
     // Create the checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -109,23 +119,19 @@ export async function createCheckoutSession(
         customer: customerID,
         mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
         shipping_address_collection: { allowed_countries: ["AU"] },
-        allow_promotion_codes: true,
     });
 
     // HOW DO I ADD SHIPPING COSTS *************** (shr shipping rates in dashboard)
-    // ALSO REDIRECT TO THE SITE WITH THE PI TO GET THE RECEIPT AS A PARAM
     // AFFILIATES SHOULD BE ABLE TO SEND THEIR LINK AS A CODE - HAVE THIS AS A PARAM VIA THE 'discounts' parameter of the checkout
     // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
-    // Maybe also provide some way of letting the customers choose their quantities on the frontend which gets sent here with the codes and filled out automatically ?
-    // Remove the adjustable pricing - the user should decide this when they are shopping
 
-    // I can send through the session URL along with the payment ID which I can store on the clients session as a cookie to expire
-    // Then when the user finishes the payment and goes to the success page, the token will be there to get the receipt from
-    // If the user does not finish and goes to the failure, then the cookie will be destroyed and redirected to the checkout
-    // Make sure this checkout and success / failure routes throw errors if the wrong thing is specified (do it under the checkout folder with index, success, and failure)
+    // Maybe I can choose to have different shipping rates which cost different amounts of money too ? (potential upsell)
 
-    // Return the URL to the checkout
-    return checkoutSession.url;
+    // Return the URL to the checkout and the id of the session to be stored as a cookie for 1 day
+    return {
+        url: checkoutSession.url,
+        id: checkoutSession.id,
+    } as CheckoutResponse;
 }
 
 // Transfer funds to the referrer
