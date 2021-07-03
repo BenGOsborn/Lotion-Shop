@@ -23,6 +23,7 @@ const Shopfront: NextPage<Props> = ({ catalogue }) => {
                     const PER_ROW = 4;
 
                     // List out the rows
+                    // ******** I WANT A SEPERATE ROW IF ITEMS ACROSS THE BOTTOM OF THE PAGE FOR EACH OF THE PAGES
                     if (i % PER_ROW === 0) {
                         return (
                             <div key={i}>

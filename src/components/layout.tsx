@@ -1,6 +1,6 @@
-import { FC, useState, useMemo } from "react";
+import { FC, useEffect, useState } from "react";
 import Nav from "./nav";
-import { cartContext } from "../utils/contexts";
+import { cartContext } from "../utils/cart";
 
 export interface CartItem {
     costID: string;
@@ -11,12 +11,17 @@ const Layout: FC<{}> = ({ children }) => {
     // The state of the cart to be used across components
     const [cart, setCart] = useState<CartItem[]>([]);
 
-    // Prevent excess changes from being made
-    const value = useMemo(() => [cart, setCart], [cart, setCart]);
+    // Set the context to whatever is inside the local storage
+    useEffect(() => {
+        const localCart = localStorage.getItem("cart");
+        if (localCart) {
+            setCart(JSON.parse(localCart));
+        }
+    }, []);
 
     return (
         <>
-            <cartContext.Provider value={value as any}>
+            <cartContext.Provider value={[cart, setCart]}>
                 <Nav />
                 <main>{children}</main>
             </cartContext.Provider>

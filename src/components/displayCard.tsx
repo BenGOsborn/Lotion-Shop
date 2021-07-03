@@ -1,5 +1,11 @@
 import Link from "next/link";
-import vercel from "../public/vercel.svg";
+import { useContext } from "react";
+import {
+    cartContext,
+    removeFromCart,
+    addToCart,
+    itemInCart,
+} from "../utils/cart";
 
 // Specify the props here
 
@@ -18,6 +24,8 @@ interface Props {
 // Convert the img tag into image
 
 const DisplayCard = (props: Props) => {
+    const [cart, setCart] = useContext(cartContext);
+
     return (
         <div>
             <Link href={`/products/${props.productID}`}>
@@ -37,6 +45,9 @@ const DisplayCard = (props: Props) => {
             <Link href={`/products/${props.productID}`}>View More</Link>
             <a href="#" onClick={(e) => console.log(props.priceID)}>
                 Add To Cart
+            </a>
+            <a href="#" onClick={(e) => console.log(props.priceID)}>
+                Remove From Cart
             </a>
         </div>
     );
