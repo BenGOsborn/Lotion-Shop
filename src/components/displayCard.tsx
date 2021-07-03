@@ -29,7 +29,7 @@ const DisplayCard = (props: Props) => {
     return (
         <>
             <div>
-                <Link href={`/products/${props.productID}`}>
+                <Link href={`/shop/${props.productID}`}>
                     <a>
                         <img
                             src={props.images[0] as any}
@@ -45,7 +45,7 @@ const DisplayCard = (props: Props) => {
                 </Link>
             </div>
             <div>
-                <Link href={`/products/${props.productID}`}>View More</Link>
+                <Link href={`/shop/${props.productID}`}>View More</Link>
             </div>
             <div>
                 {itemInCart(props.priceID, cart) === -1 ? (

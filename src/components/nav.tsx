@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { cartContext } from "../utils/cart";
+import Link from "next/link";
 
 const Nav = () => {
     // Initialize the context
@@ -17,7 +18,23 @@ const Nav = () => {
         setTotal(newTotal);
     }, [cart]);
 
-    return <p>Items in cart: {total}</p>;
+    return (
+        <nav>
+            <h2>
+                <Link href="/">Lotion Shop</Link>
+            </h2>
+            <ul>
+                <li>
+                    <Link href="/shop">Shop</Link>
+                </li>
+                <li>
+                    <Link href="/checkout">{`View Cart (${
+                        total === 0 ? "empty" : total
+                    })`}</Link>
+                </li>
+            </ul>
+        </nav>
+    );
 };
 
 // Export the nav
