@@ -36,16 +36,11 @@ export const addToCart = (
     }
 
     // Update the cart
-    localStorage.setItem("cart", JSON.stringify(cart));
+    localStorage.setItem("cart", JSON.stringify(newCart));
     setCart(newCart);
 
     // Return success
     return true;
-};
-
-// ********** Merge this into my original one
-const delIndex = <T>(index: number, arr: T[]) => {
-    return arr.filter((x, i) => (i !== index ? x : null));
 };
 
 // Remove items from the shopping cart
@@ -55,7 +50,7 @@ export const removeFromCart = (
     setCart: Dispatch<SetStateAction<CartItem[]>>
 ) => {
     // Make a copy of the cart to be modified
-    const newCart = [...cart];
+    let newCart = [...cart];
 
     // Update the quantity of items if the item exists
     for (let i = 0; i < newCart.length; i++) {
@@ -63,15 +58,20 @@ export const removeFromCart = (
             // If the quantity is 1 then delete the item from the cart, otherwise decrement the value
             if (newCart[i].quantity > 1) {
                 newCart[i].quantity--;
+
                 // Save the cart in the local storage
-                localStorage.setItem("cart", JSON.stringify(cart));
+                localStorage.setItem("cart", JSON.stringify(newCart));
                 setCart(newCart);
+
                 return true;
             } else {
+                // Remove the item from local storage
+                newCart = newCart.filter((_, index) => index !== i);
+
                 // Save the cart in the local storage
-                localStorage.setItem("cart", JSON.stringify(cart));
-                // setCart(newCart.splice(i, 1)); // This could be the broken line ?
-                setCart(delIndex<CartItem>(i, newCart));
+                localStorage.setItem("cart", JSON.stringify(newCart));
+                setCart(newCart);
+
                 return true;
             }
         }

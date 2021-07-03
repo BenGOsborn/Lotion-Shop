@@ -19,7 +19,6 @@ interface Props {
     priceID: string;
 }
 
-// This will require the context for adding the products and checking if the product is already in ?
 // I also want to have the description pop up over the image when hovered
 // Convert the img tag into image
 
@@ -28,47 +27,64 @@ const DisplayCard = (props: Props) => {
     const [cart, setCart] = useContext(cartContext);
 
     return (
-        <div>
-            <Link href={`/products/${props.productID}`}>
-                <a>
-                    <img
-                        src={props.images[0] as any}
-                        alt={props.name}
-                        width={200}
-                        height={200}
-                    />
-                    <h3>{props.name}</h3>
-                    <h4>{`$${
-                        props.price / 100
-                    } ${props.currency.toUpperCase()}`}</h4>
-                </a>
-            </Link>
-            <Link href={`/products/${props.productID}`}>View More</Link>
-            {itemInCart(props.priceID, cart) === -1 ? (
-                <a
-                    href="#"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        console.log("Added " + props.priceID);
-                        addToCart(props.priceID, cart, setCart);
-                    }}
-                >
-                    Add To Cart
-                    {/* Also add a button here to increment the number of items */}
-                </a>
-            ) : (
-                <a
-                    href="#"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        console.log("Removed " + props.priceID);
-                        removeFromCart(props.priceID, cart, setCart);
-                    }}
-                >
-                    Remove From Cart
-                </a>
-            )}
-        </div>
+        <>
+            <div>
+                <Link href={`/products/${props.productID}`}>
+                    <a>
+                        <img
+                            src={props.images[0] as any}
+                            alt={props.name}
+                            width={200}
+                            height={200}
+                        />
+                        <h3>{props.name}</h3>
+                        <h4>{`$${
+                            props.price / 100
+                        } ${props.currency.toUpperCase()}`}</h4>
+                    </a>
+                </Link>
+            </div>
+            <div>
+                <Link href={`/products/${props.productID}`}>View More</Link>
+            </div>
+            <div>
+                {itemInCart(props.priceID, cart) === -1 ? (
+                    <a
+                        href="#"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            addToCart(props.priceID, cart, setCart);
+                        }}
+                    >
+                        Add To Cart
+                    </a>
+                ) : (
+                    <>
+                        <a
+                            href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                removeFromCart(props.priceID, cart, setCart);
+                            }}
+                        >
+                            -
+                        </a>
+                        <span>
+                            {cart[itemInCart(props.priceID, cart)].quantity}
+                        </span>
+                        <a
+                            href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                addToCart(props.priceID, cart, setCart);
+                            }}
+                        >
+                            +
+                        </a>
+                    </>
+                )}
+            </div>
+        </>
     );
 };
 
