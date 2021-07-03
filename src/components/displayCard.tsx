@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import {
     cartContext,
     removeFromCart,
@@ -24,6 +24,7 @@ interface Props {
 // Convert the img tag into image
 
 const DisplayCard = (props: Props) => {
+    // Initialize the context of the cart
     const [cart, setCart] = useContext(cartContext);
 
     return (
@@ -43,12 +44,30 @@ const DisplayCard = (props: Props) => {
                 </a>
             </Link>
             <Link href={`/products/${props.productID}`}>View More</Link>
-            <a href="#" onClick={(e) => console.log(props.priceID)}>
-                Add To Cart
-            </a>
-            <a href="#" onClick={(e) => console.log(props.priceID)}>
-                Remove From Cart
-            </a>
+            {itemInCart(props.priceID, cart) === -1 ? (
+                <a
+                    href="#"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        console.log("Added " + props.priceID);
+                        addToCart(props.priceID, cart, setCart);
+                    }}
+                >
+                    Add To Cart
+                    {/* Also add a button here to increment the number of items */}
+                </a>
+            ) : (
+                <a
+                    href="#"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        console.log("Removed " + props.priceID);
+                        removeFromCart(props.priceID, cart, setCart);
+                    }}
+                >
+                    Remove From Cart
+                </a>
+            )}
         </div>
     );
 };

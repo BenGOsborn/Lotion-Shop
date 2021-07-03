@@ -3,7 +3,7 @@ import Nav from "./nav";
 import { cartContext } from "../utils/cart";
 
 export interface CartItem {
-    costID: string;
+    priceID: string;
     quantity: number;
 }
 

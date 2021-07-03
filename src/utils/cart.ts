@@ -9,7 +9,7 @@ export const cartContext = createContext<
 
 // Add items to the shopping cart
 export const addToCart = (
-    costID: string,
+    priceID: string,
     cart: CartItem[],
     setCart: Dispatch<SetStateAction<CartItem[]>>
 ) => {
@@ -21,7 +21,7 @@ export const addToCart = (
 
     // Update the quantity of the items if it exists
     for (let i = 0; i < newCart.length; i++) {
-        if (newCart[i].costID === costID) {
+        if (newCart[i].priceID === priceID) {
             // Make sure the amount in the cart is not more than what is allowed (verified on the backend too)
             if (newCart[i].quantity === MAX_QUANTITY) return false;
             newCart[i].quantity++;
@@ -32,19 +32,25 @@ export const addToCart = (
 
     // Add the item to the card if it does not exist
     if (updatedIndex === -1) {
-        newCart.push({ costID, quantity: 1 });
+        newCart.push({ priceID, quantity: 1 });
     }
 
     // Update the cart
+    localStorage.setItem("cart", JSON.stringify(cart));
     setCart(newCart);
 
     // Return success
     return true;
 };
 
+// ********** Merge this into my original one
+const delIndex = <T>(index: number, arr: T[]) => {
+    return arr.filter((x, i) => (i !== index ? x : null));
+};
+
 // Remove items from the shopping cart
 export const removeFromCart = (
-    costID: string,
+    priceID: string,
     cart: CartItem[],
     setCart: Dispatch<SetStateAction<CartItem[]>>
 ) => {
@@ -53,7 +59,7 @@ export const removeFromCart = (
 
     // Update the quantity of items if the item exists
     for (let i = 0; i < newCart.length; i++) {
-        if (newCart[i].costID === costID) {
+        if (newCart[i].priceID === priceID) {
             // If the quantity is 1 then delete the item from the cart, otherwise decrement the value
             if (newCart[i].quantity > 1) {
                 newCart[i].quantity--;
@@ -64,7 +70,8 @@ export const removeFromCart = (
             } else {
                 // Save the cart in the local storage
                 localStorage.setItem("cart", JSON.stringify(cart));
-                setCart(newCart.splice(i, 1));
+                // setCart(newCart.splice(i, 1)); // This could be the broken line ?
+                setCart(delIndex<CartItem>(i, newCart));
                 return true;
             }
         }
@@ -75,10 +82,10 @@ export const removeFromCart = (
 };
 
 // Check if an item exists in the card
-export const itemInCart = (costID: string, cart: CartItem[]) => {
+export const itemInCart = (priceID: string, cart: CartItem[]) => {
     // Check the items and return the index the item exists at
     for (let i = 0; i < cart.length; i++) {
-        if (cart[i].costID === costID) return i;
+        if (cart[i].priceID === priceID) return i;
     }
 
     // Return -1 if the item does not exist
