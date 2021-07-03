@@ -4,7 +4,7 @@
 import axios from "axios";
 import { NextPage } from "next";
 import { useContext, useEffect, useState } from "react";
-import { cartContext } from "../../utils/cart";
+import { addToCart, cartContext, removeFromCart } from "../../utils/cart";
 import { CatalogueItem } from "../../utils/stripe";
 
 interface Props {}
@@ -13,6 +13,7 @@ interface CheckoutItems {
     name: string;
     quantity: number;
     price: number;
+    priceID: string;
 }
 
 // I should include some sort of upsells before the user redirects to the checkout process - maybe I can have it display special offers that arent normally shown ? OR offer a discount on a bulk buy ?
@@ -56,6 +57,7 @@ const Checkout: NextPage<Props> = () => {
                             name: item.product.name,
                             quantity: tuples[index][1] as number,
                             price: item.price.unit_amount as number,
+                            priceID: item.price.id,
                         });
                     }
                 });
@@ -85,6 +87,36 @@ const Checkout: NextPage<Props> = () => {
                             <tr>
                                 <td>{item.name}</td>
                                 <td>{item.quantity}</td>
+                                {/* It is not updating the checkout cart and that is why it is no updating - tie the two together */}
+                                <td>
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            removeFromCart(
+                                                item.priceID,
+                                                cart,
+                                                setCart
+                                            );
+                                        }}
+                                    >
+                                        -
+                                    </a>
+                                    <span>{item.quantity}</span>
+                                    <a
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            addToCart(
+                                                item.priceID,
+                                                cart,
+                                                setCart
+                                            );
+                                        }}
+                                    >
+                                        +
+                                    </a>
+                                </td>
                                 <td>${(item.price / 100).toFixed(2)}</td>
                             </tr>
                         );

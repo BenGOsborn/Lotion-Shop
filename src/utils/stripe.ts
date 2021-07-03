@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { siteURL } from "./constants";
+import { COUPON_ID_NORMAL, SHIPPING_ID_NORMAL, siteURL } from "./constants";
 import connectMongo from "./connectMongo";
 import AffiliateSchema from "../mongooseModels/affiliate";
 import { MAX_QUANTITY } from "./constants";
@@ -81,15 +81,16 @@ export async function getProductDetails(productID: string) {
 
 export interface CheckoutResponse {
     url: string;
-    id: string;
+    checkoutID: string;
+    customerID: string;
 }
 
 // Create a checkout session for users to pay with
 // Make this accept cart ****** Items instead
 export async function createCheckoutSession(
     items: CartItem[],
-    // promoCode?: string,
-    customerID?: string
+    customerID?: string,
+    promoCode?: string
 ) {
     // Generate the items to be featured in the checkout
     const lineItems = new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
@@ -108,29 +109,30 @@ export async function createCheckoutSession(
         customerID = (await stripe.customers.create()).id;
     }
 
-    // If there is a promo code then make this session into one with the discount already applied INSIDE of a cookie (valid for 5 days)
+    // If there is a promo code then make this session into one with the discount already applied INSIDE of a cookie (valid for 5 days) (they get promo code from a custom link)
+    // This means I will have to set up the affiliates section before I can properly implement this (I need to apply the discounts param to the checkout)
+
+    // Add tax option to checkout ?
 
     // Create the checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
         cancel_url: `${siteURL}/checkout/cancel`,
-        success_url: `${siteURL}/checkout/success?customerID=${customerID}`,
+        success_url: `${siteURL}/checkout/success`,
         payment_method_types: ["card"],
         line_items: lineItems,
         customer: customerID,
         mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
         shipping_address_collection: { allowed_countries: ["AU"] },
+        shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
     });
 
-    // HOW DO I ADD SHIPPING COSTS *************** (shr shipping rates in dashboard)
-    // AFFILIATES SHOULD BE ABLE TO SEND THEIR LINK AS A CODE - HAVE THIS AS A PARAM VIA THE 'discounts' parameter of the checkout
     // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
-
-    // Maybe I can choose to have different shipping rates which cost different amounts of money too ? (potential upsell)
 
     // Return the URL to the checkout and the id of the session to be stored as a cookie for 1 day
     return {
         url: checkoutSession.url,
-        id: checkoutSession.id,
+        checkoutID: checkoutSession.id,
+        customerID: customerID,
     } as CheckoutResponse;
 }
 
@@ -192,7 +194,7 @@ export async function payReferrer(
 // ********** Perform checks for different error conditions for the following
 
 // Initialize an affiliate OR revive a disabled affiliate account
-export async function initializeAffiliate(promoCode: string, couponID: string) {
+export async function initializeAffiliate(promoCode: string) {
     // Initialize the database
     await connectMongo();
 
@@ -204,7 +206,7 @@ export async function initializeAffiliate(promoCode: string, couponID: string) {
 
     // Create promises for a new promo code and account
     const promoPromise = stripe.promotionCodes.create({
-        coupon: couponID,
+        coupon: COUPON_ID_NORMAL,
         code: promoCode,
     });
     const accountPromise = stripe.accounts.create({ type: "express" });

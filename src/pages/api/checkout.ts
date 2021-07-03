@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { CartItem } from "../../components/layout";
 import { createCheckoutSession } from "../../utils/stripe";
 
 export default async function catalogue(
@@ -10,7 +11,7 @@ export default async function catalogue(
         const {
             priceIDs,
             customerID,
-        }: { priceIDs: string[]; customerID: string | undefined } = req.body;
+        }: { priceIDs: CartItem[]; customerID: string | undefined } = req.body; // More like some of these will be sent as cookies
 
         // Check that the priceIDs exist
         if (typeof priceIDs === "undefined" || priceIDs.length === 0) {
