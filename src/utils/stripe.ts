@@ -119,6 +119,11 @@ export async function createCheckoutSession(
     // Maybe also provide some way of letting the customers choose their quantities on the frontend which gets sent here with the codes and filled out automatically ?
     // Remove the adjustable pricing - the user should decide this when they are shopping
 
+    // I can send through the session URL along with the payment ID which I can store on the clients session as a cookie to expire
+    // Then when the user finishes the payment and goes to the success page, the token will be there to get the receipt from
+    // If the user does not finish and goes to the failure, then the cookie will be destroyed and redirected to the checkout
+    // Make sure this checkout and success / failure routes throw errors if the wrong thing is specified (do it under the checkout folder with index, success, and failure)
+
     // Return the URL to the checkout
     return checkoutSession.url;
 }
