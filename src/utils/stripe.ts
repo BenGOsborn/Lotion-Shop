@@ -85,6 +85,25 @@ interface CheckoutResponse {
     customerID: string;
 }
 
+// Get the receipt from a checkout session
+export async function retrieveReceipt(checkoutSessionID: string) {
+    // Get the checkout
+    const checkoutSession = await stripe.checkout.sessions.retrieve(
+        checkoutSessionID
+    );
+
+    // Get the payment intent from the session
+    const paymentIntentID = checkoutSession.payment_intent;
+    const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentID as string
+    );
+
+    // Get the url of the receipt and return it
+    const receipt = paymentIntent.charges.data[0].receipt_url;
+
+    return receipt as string;
+}
+
 // Create a checkout session for users to pay with
 // Make this accept cart ****** Items instead
 export async function createCheckoutSession(
@@ -116,7 +135,7 @@ export async function createCheckoutSession(
 
     // Create the checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
-        cancel_url: `${siteURL}/checkout/cancel`,
+        cancel_url: `${siteURL}/checkout`, // Would it be better to have a custom fail page which we can track ?
         success_url: `${siteURL}/checkout/success`,
         payment_method_types: ["card"],
         line_items: lineItems,
@@ -128,7 +147,7 @@ export async function createCheckoutSession(
 
     // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
 
-    // Return the URL to the checkout and the id of the session to be stored as a cookie for 1 day
+    // Return the URL to the checkout and the id of the session and the user to be stored as a cookie
     return {
         url: checkoutSession.url,
         checkoutID: checkoutSession.id,

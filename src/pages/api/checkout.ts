@@ -29,29 +29,23 @@ export default async function catalogue(
             promoCode
         );
 
-        // Set the customer ID cookie
-        res.setHeader(
-            "Set-Cookie",
+        // Set the customer ID cookie and the checkout session ID cookie
+        res.setHeader("Set-Cookie", [
             cookie.serialize("customerID", checkoutData.customerID, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV !== "development",
                 maxAge: 60 * 60 * 24 * 365 * 100,
                 sameSite: "strict",
                 path: "/",
-            })
-        );
-
-        // Set the checkout session cookie (will be voided on repsonse)
-        res.setHeader(
-            "Set-Cookie",
+            }),
             cookie.serialize("checkoutID", checkoutData.checkoutID, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV !== "development",
                 maxAge: 60 * 60 * 24,
                 sameSite: "strict",
                 path: "/",
-            })
-        );
+            }),
+        ]);
 
         // Return the checkout link
         res.status(200).end(checkoutData.url);

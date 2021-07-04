@@ -7,6 +7,7 @@ import { MouseEvent, useContext, useEffect, useState } from "react";
 import { addToCart, cartContext, removeFromCart } from "../../utils/cart";
 import { CatalogueItem } from "../../utils/stripe";
 import { useRouter } from "next/dist/client/router";
+import Link from "next/link";
 
 interface Props {}
 
@@ -183,7 +184,11 @@ const Checkout: NextPage<Props> = () => {
                 ) : (
                     <p>{status.log}</p>
                 )
-            ) : null}
+            ) : (
+                <p>
+                    Cart is empty! <Link href="/">Shop now</Link>
+                </p>
+            )}
         </>
     );
 };

@@ -7,6 +7,13 @@ export const cartContext = createContext<
     [CartItem[], Dispatch<SetStateAction<CartItem[]>>]
 >(undefined as any);
 
+// Clear the cart of all items
+export const clearCart = (setCart: Dispatch<SetStateAction<CartItem[]>>) => {
+    // Set the local storage and cart to be empty
+    localStorage.setItem("cart", JSON.stringify([]));
+    setCart([]);
+};
+
 // Add items to the shopping cart
 export const addToCart = (
     priceID: string,
