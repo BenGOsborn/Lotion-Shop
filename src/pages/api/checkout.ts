@@ -47,6 +47,8 @@ export default async function catalogue(
             }),
         ]);
 
+        // Clean up the promocode
+
         // Return the checkout link
         res.status(200).end(checkoutData.url);
     } else {

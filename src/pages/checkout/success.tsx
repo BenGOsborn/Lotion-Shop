@@ -52,7 +52,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     } catch {
         // Redirect the user to the checkout
         res.statusCode = 302;
-        res.setHeader("Location", "/");
+        res.setHeader("Location", "/checkout");
 
         // Return something
         return { props: {} as any };

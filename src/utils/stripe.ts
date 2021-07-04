@@ -1,5 +1,10 @@
 import Stripe from "stripe";
-import { COUPON_ID_NORMAL, SHIPPING_ID_NORMAL, siteURL } from "./constants";
+import {
+    COUPON_ID_NORMAL,
+    REFERRER_PORTION,
+    SHIPPING_ID_NORMAL,
+    siteURL,
+} from "./constants";
 import connectMongo from "./connectMongo";
 import AffiliateSchema from "../mongooseModels/affiliate";
 import { MAX_QUANTITY } from "./constants";
@@ -104,13 +109,28 @@ export async function retrieveReceipt(checkoutSessionID: string) {
     return receipt as string;
 }
 
+export async function cartPrice(items: CartItem[]) {
+    // Get the total price of the items (quantities and prices)
+    let total = 0;
+
+    for (const item of items) {
+        const price = await stripe.prices.retrieve(item.priceID);
+        total += (price.unit_amount as number) * item.quantity;
+    }
+
+    // Return the total count
+    return total;
+}
+
 // Create a checkout session for users to pay with
-// Make this accept cart ****** Items instead
 export async function createCheckoutSession(
     items: CartItem[],
     customerID?: string,
     promoCode?: string
 ) {
+    // Connect to the database
+    connectMongo();
+
     // Generate the items to be featured in the checkout
     const lineItems = new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
         items.length
@@ -134,16 +154,52 @@ export async function createCheckoutSession(
     // Add tax option to checkout ?
 
     // Create the checkout session
-    const checkoutSession = await stripe.checkout.sessions.create({
-        cancel_url: `${siteURL}/checkout`, // Would it be better to have a custom fail page which we can track ?
-        success_url: `${siteURL}/checkout/success`,
-        payment_method_types: ["card"],
-        line_items: lineItems,
-        customer: customerID,
-        mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
-        shipping_address_collection: { allowed_countries: ["AU"] },
-        shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
-    });
+    let checkoutSession: Stripe.Response<Stripe.Checkout.Session>;
+
+    // If there is a promocode apply the discount and pay the funds to the specified account
+    if (promoCode) {
+        // Get the affiliate with the specified promo code
+        const affiliate = await AffiliateSchema.findOne({ promoCode });
+        if (!affiliate) {
+            throw new Error("Invalid promo code");
+        }
+
+        // Get the amount to pay the referrer
+        const price = await cartPrice(items);
+        const payout = (price * REFERRER_PORTION).toFixed(2);
+
+        // Create the checkout session with the discounts applied and the amount to pay the referrer
+        checkoutSession = await stripe.checkout.sessions.create({
+            cancel_url: `${siteURL}/checkout`, // Would it be better to have a custom fail page which we can track ?
+            success_url: `${siteURL}/checkout/success`,
+            payment_method_types: ["card"],
+            line_items: lineItems,
+            customer: customerID,
+            mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
+            shipping_address_collection: { allowed_countries: ["AU"] },
+            shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
+            discounts: [
+                affiliate.promoCodeID as Stripe.Checkout.SessionCreateParams.Discount,
+            ],
+            // @ts-ignore
+            transfer_data: {
+                amount: payout,
+                destination: affiliate.accountID,
+            },
+        });
+    } else {
+        // Create the standard checkout session
+        checkoutSession = await stripe.checkout.sessions.create({
+            cancel_url: `${siteURL}/checkout`, // Would it be better to have a custom fail page which we can track ?
+            success_url: `${siteURL}/checkout/success`,
+            payment_method_types: ["card"],
+            line_items: lineItems,
+            customer: customerID,
+            mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
+            shipping_address_collection: { allowed_countries: ["AU"] },
+            shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
+        });
+    }
 
     // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
 
@@ -154,63 +210,6 @@ export async function createCheckoutSession(
         customerID: customerID,
     } as CheckoutResponse;
 }
-
-// Transfer funds to the referrer
-// What about paying referrers for subscriptions ?
-// ********** This also needs updating big time
-export async function payReferrer(
-    promoCodeID: Stripe.PromotionCode | string,
-    checkoutSessionID: string
-) {
-    // Declare the percentage of revenue to pay out to affiliates
-    const PERCENTAGE = 0.15;
-
-    // Connect to the database
-    await connectMongo();
-
-    // Get the payment intent ID from the checkout session
-    const checkoutSession = await stripe.checkout.sessions.retrieve(
-        checkoutSessionID as string
-    );
-    const paymentIntentID = checkoutSession.payment_intent as string;
-
-    // Check that this payment intent has not already been paid out
-    const existingIntent = await AffiliateSchema.findOne({
-        referrals: { $elemMatch: { paymentIntentID: paymentIntentID } },
-    });
-    if (existingIntent) {
-        throw new Error("This referral has already paid out");
-    }
-
-    // Get the payment intent and the referral code account
-    const paymentIntentPromise = stripe.paymentIntents.retrieve(
-        checkoutSession.payment_intent as string
-    );
-    const affiliatePromise = AffiliateSchema.findOne({
-        promoCodeID: promoCodeID as string,
-    }); // What happens if it cant find an affiliate ?
-
-    // Wait for the payment intent and get the amount to pay out from it in the correct currency
-    const paymentIntent = await paymentIntentPromise;
-    const transferAmount = paymentIntent.amount * PERCENTAGE;
-    const transferCurrency = paymentIntent.currency;
-
-    // Get the affiliate and pay their account the amount
-    const affiliate = await affiliatePromise;
-    const transfer = await stripe.transfers.create({
-        amount: transferAmount,
-        currency: transferCurrency,
-        destination: affiliate?.accountID as string,
-    });
-
-    // Save the details of the payout
-    await AffiliateSchema.updateOne(
-        { promoCodeID: promoCodeID as string },
-        { $push: { referrals: { paymentIntentID, transferID: transfer.id } } }
-    );
-}
-
-// ********** Perform checks for different error conditions for the following
 
 // Initialize an affiliate OR revive a disabled affiliate account
 export async function initializeAffiliate(promoCode: string) {
