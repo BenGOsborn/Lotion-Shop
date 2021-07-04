@@ -1,11 +1,12 @@
 // This page is going to display the items in the checkout and allow the person to gather more if they wish
 // Make sure to get the payment intent before proceeding to the checkout and storing it so the user can view their receipt
 
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { NextPage } from "next";
-import { useContext, useEffect, useState } from "react";
+import { MouseEvent, useContext, useEffect, useState } from "react";
 import { addToCart, cartContext, removeFromCart } from "../../utils/cart";
 import { CatalogueItem } from "../../utils/stripe";
+import { useRouter } from "next/dist/client/router";
 
 interface Props {}
 
@@ -16,31 +17,28 @@ interface CheckoutItems {
     priceID: string;
 }
 
+export interface Status {
+    success: boolean;
+    log: any;
+}
+
 // I should include some sort of upsells before the user redirects to the checkout process - maybe I can have it display special offers that arent normally shown ? OR offer a discount on a bulk buy ?
 
 const Checkout: NextPage<Props> = () => {
     // Initialize the context
     const [cart, setCart] = useContext(cartContext);
-    const [checkoutItems, setCheckoutItems] = useState<CheckoutItems[]>([]);
 
-    // Filter the invalid items out of the checkout items
+    // Initialize the states
+    const [checkoutItems, setCheckoutItems] = useState<CheckoutItems[]>([]);
+    const [status, setStatus] = useState<Status | null>(null);
+
+    const router = useRouter();
+
+    // Update the checkout items
     useEffect(() => {
-        // Get the full catalogue of items
         axios
             .get<CatalogueItem[]>("/api/catalogue")
             .then((res) => {
-                // Get a list of valid price ids from the catalogue
-                const validPriceIDs = res.data.map((item) => item.price.id);
-
-                // Filter out the cart items not in the catalogue and set that as the state
-                const filtered = cart.filter((item) =>
-                    validPriceIDs.includes(item.priceID)
-                );
-
-                // Update the local storage and the cart
-                localStorage.setItem("cart", JSON.stringify(filtered));
-                setCart(filtered);
-
                 // Make a new list of checkout items from the cart
                 const newCheckoutItems: CheckoutItems[] = [];
 
@@ -62,90 +60,130 @@ const Checkout: NextPage<Props> = () => {
                     }
                 });
 
-                setCheckoutItems(newCheckoutItems); // This has not been initialized yet
+                setCheckoutItems(newCheckoutItems);
             })
-            .catch(() => null); // What am I gonna do about the checkout items here ? (error message)
+            .catch((error: AxiosError) => {
+                // Log an error message
+                setStatus({ success: false, log: error.response?.data });
+            });
+    }, [cart]);
 
-        // I also need some way of loading in the price of each of the items ?
-    }, []);
+    const onCheckout = (e: MouseEvent<HTMLAnchorElement>) => {
+        // Prevent the page from executing navigation
+        e.preventDefault();
+
+        // Get the checkout link (contains cookies) and set the cookies it gets from them
+        axios
+            .post<string>("/api/checkout", { items: cart })
+            .then((res) => {
+                // The cookies should be set from the response - redirect to the checkout URL
+                router.push(res.data);
+            })
+            .catch((error: AxiosError) => {
+                // Log the error message
+                setStatus({ success: false, log: error.response?.data });
+            });
+    };
 
     // Now here I want to provide a layout of all of the different items and adjustments for them
 
     return (
         <>
-            <table>
-                <thead>
-                    <tr>
-                        <td>Name</td>
-                        <td>Quantity</td>
-                        <td>Price</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {checkoutItems.map((item) => {
-                        return (
+            {checkoutItems.length > 0 ? (
+                <>
+                    <table>
+                        <thead>
                             <tr>
-                                <td>{item.name}</td>
-                                <td>{item.quantity}</td>
-                                {/* It is not updating the checkout cart and that is why it is no updating - tie the two together */}
-                                <td>
-                                    <a
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            removeFromCart(
-                                                item.priceID,
-                                                cart,
-                                                setCart
-                                            );
-                                        }}
-                                    >
-                                        -
-                                    </a>
-                                    <span>{item.quantity}</span>
-                                    <a
-                                        href="#"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            addToCart(
-                                                item.priceID,
-                                                cart,
-                                                setCart
-                                            );
-                                        }}
-                                    >
-                                        +
-                                    </a>
-                                </td>
-                                <td>${(item.price / 100).toFixed(2)}</td>
+                                <td>Name</td>
+                                <td>Quantity</td>
+                                <td>Price Per Item</td>
+                                <td>Price</td>
                             </tr>
-                        );
-                    })}
-                    <tr>
-                        <td>Total</td>
-                        <td>
-                            {checkoutItems.reduce(
-                                (accumulator, current) =>
-                                    accumulator + current.quantity,
-                                0
-                            )}
-                        </td>
-                        <td>
-                            $
-                            {(
-                                checkoutItems.reduce(
-                                    (accumulator, current) =>
-                                        accumulator + current.price,
-                                    0
-                                ) / 100
-                            ).toFixed(2)}{" "}
-                        </td>
-                    </tr>
-                </tbody>
-                <a href="#" onClick={(e) => console.log("LOl!")}>
-                    Checkout
-                </a>
-            </table>
+                        </thead>
+                        <tbody>
+                            {checkoutItems.map((item, index) => {
+                                return (
+                                    <tr key={index}>
+                                        <td>{item.name}</td>
+                                        <td>
+                                            <a
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    removeFromCart(
+                                                        item.priceID,
+                                                        cart,
+                                                        setCart
+                                                    );
+                                                }}
+                                            >
+                                                -
+                                            </a>
+                                            <span>{item.quantity}</span>
+                                            <a
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    addToCart(
+                                                        item.priceID,
+                                                        cart,
+                                                        setCart
+                                                    );
+                                                }}
+                                            >
+                                                +
+                                            </a>
+                                        </td>
+                                        <td>
+                                            ${(item.price / 100).toFixed(2)}
+                                        </td>
+                                        <td>
+                                            $
+                                            {(
+                                                (item.price * item.quantity) /
+                                                100
+                                            ).toFixed(2)}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            <tr>
+                                <td>Total</td>
+                                <td>
+                                    {checkoutItems.reduce(
+                                        (accumulator, current) =>
+                                            accumulator + current.quantity,
+                                        0
+                                    )}
+                                </td>
+                                <td></td>
+                                <td>
+                                    $
+                                    {(
+                                        checkoutItems.reduce(
+                                            (accumulator, current) =>
+                                                accumulator +
+                                                current.price *
+                                                    current.quantity,
+                                            0
+                                        ) / 100
+                                    ).toFixed(2)}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <a href="#" onClick={onCheckout}>
+                        Checkout
+                    </a>
+                </>
+            ) : null}
+            {status ? (
+                status.success ? (
+                    <p>{status.log}</p>
+                ) : (
+                    <p>{status.log}</p>
+                )
+            ) : null}
         </>
     );
 };

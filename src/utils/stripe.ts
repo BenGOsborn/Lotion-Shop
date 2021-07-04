@@ -79,7 +79,7 @@ export async function getProductDetails(productID: string) {
     return { product, prices: prices } as ProductDetails;
 }
 
-export interface CheckoutResponse {
+interface CheckoutResponse {
     url: string;
     checkoutID: string;
     customerID: string;
@@ -317,8 +317,12 @@ export async function testMethod() {
 
     // const response = stripe.prices.list({ limit: 100 });
 
-    const response = await stripe.charges.retrieve(
-        "ch_1J7tyOC7YoItP8TeMnav41P1"
+    // const response = await stripe.checkout.sessions.retrieve(
+    //     "cs_test_a1KxhZsqYKjk1rViQuc9vpi7ldgrvSHx05KXbh46UX1sQ8fbBSYsStK3qz"
+    // );
+
+    const response = await stripe.paymentIntents.retrieve(
+        "pi_1J9JrpC7YoItP8TeBAWnDPAU"
     );
 
     return response;
