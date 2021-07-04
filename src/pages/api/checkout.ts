@@ -9,11 +9,11 @@ export default async function catalogue(
 ) {
     if (req.method === "POST") {
         // Get the data from the request
-        const { items }: { items: CartItem[] } = req.body; // More like some of these will be sent as cookies
+        const { items }: { items: CartItem[] } = req.body;
 
-        // Get the cookies - ******* MAKE SURE THE CUSTOMER COOKIE CANNOT BE EXPLOITED FOR PURCHASES
+        // Get the cookies
         const {
-            customerID,
+            customerID, // Make sure this cant be exploited to make purchases on behalf of a user
             promoCode,
         }: { customerID?: string; promoCode?: string } = req.cookies;
 
@@ -22,35 +22,57 @@ export default async function catalogue(
             throw new Error("Missing cost IDs");
         }
 
-        // Create the checkout link
-        const checkoutData = await createCheckoutSession(
-            items,
-            customerID,
-            promoCode
-        );
+        try {
+            // Create the checkout link
+            const checkoutData = await createCheckoutSession(
+                items,
+                customerID,
+                promoCode
+            );
 
-        // Set the customer ID cookie and the checkout session ID cookie
-        res.setHeader("Set-Cookie", [
-            cookie.serialize("customerID", checkoutData.customerID, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV !== "development",
-                maxAge: 60 * 60 * 24 * 365 * 100,
-                sameSite: "strict",
-                path: "/",
-            }),
-            cookie.serialize("checkoutID", checkoutData.checkoutID, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV !== "development",
-                maxAge: 60 * 60 * 24,
-                sameSite: "lax", // Required so the cookie can be accessed from the Stripe redirect
-                path: "/",
-            }),
-        ]);
+            // Set the customer ID cookie, the checkout session ID cookie, and delete the promoCode cookier
+            res.setHeader("Set-Cookie", [
+                cookie.serialize("customerID", checkoutData.customerID, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV !== "development",
+                    maxAge: 60 * 60 * 24 * 365 * 100,
+                    sameSite: "strict",
+                    path: "/",
+                }),
+                cookie.serialize("checkoutID", checkoutData.checkoutID, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV !== "development",
+                    maxAge: 60 * 60 * 24,
+                    sameSite: "lax", // Required so the cookie can be accessed from the Stripe redirect
+                    path: "/",
+                }),
+                cookie.serialize("promoCode", "", {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV !== "development",
+                    maxAge: 0,
+                    sameSite: "strict",
+                    path: "/",
+                }),
+            ]);
 
-        // Clean up the promocode
+            // Return the checkout link
+            res.status(200).end(checkoutData.url);
+        } catch {
+            // Delete the promoCode cookie
+            res.setHeader(
+                "Set-Cookie",
+                cookie.serialize("promoCode", "", {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV !== "development",
+                    maxAge: 0,
+                    sameSite: "strict",
+                    path: "/",
+                })
+            );
 
-        // Return the checkout link
-        res.status(200).end(checkoutData.url);
+            // Return error
+            res.status(500).end("Internal Server Error");
+        }
     } else {
         res.status(400).end("Invalid method");
     }

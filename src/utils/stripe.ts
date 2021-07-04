@@ -1,10 +1,5 @@
 import Stripe from "stripe";
-import {
-    COUPON_ID_NORMAL,
-    REFERRER_PORTION,
-    SHIPPING_ID_NORMAL,
-    siteURL,
-} from "./constants";
+import { REFERRER_PORTION, SHIPPING_ID_NORMAL, siteURL } from "./constants";
 import connectMongo from "./connectMongo";
 import AffiliateSchema from "../mongooseModels/affiliate";
 import { MAX_QUANTITY } from "./constants";
@@ -183,6 +178,7 @@ export async function createCheckoutSession(
             ],
             // @ts-ignore
             transfer_data: {
+                // If something goes wrong with the promo code, its most likely this line
                 amount: payout,
                 destination: affiliate.accountID,
             },
@@ -211,137 +207,158 @@ export async function createCheckoutSession(
     } as CheckoutResponse;
 }
 
-// Initialize an affiliate OR revive a disabled affiliate account
-export async function initializeAffiliate(promoCode: string) {
-    // Initialize the database
-    await connectMongo();
+// Split below into its own affiliate section
 
-    // Make sure the promo code does not already exist
-    const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
-    if (affiliate && !affiliate.active) {
-        throw new Error("Affiliate with this ID is active");
+export async function promoCodeExists(promoCode: string) {
+    // Maybe I should just set the cookie to be the promo code ID which I can just send through into things - this would mean less data fetching possibly ? (investigate)
+
+    // Connect to the database
+    connectMongo();
+
+    // Get the affiliate with the specified promo code - return error if does not exist ******** The error system for affiliates should be better as well
+    const affiliate = await AffiliateSchema.findOne({ promoCode });
+    if (!affiliate) {
+        return false;
     }
 
-    // Create promises for a new promo code and account
-    const promoPromise = stripe.promotionCodes.create({
-        coupon: COUPON_ID_NORMAL,
-        code: promoCode,
-    });
-    const accountPromise = stripe.accounts.create({ type: "express" });
-
-    // If there is an existing affiliate then reinitialize the values, otherwise create new ones
-    if (affiliate) {
-        // Wait for the values
-        const promo = await promoPromise;
-        const account = await accountPromise;
-
-        // Update the affiliate status to active and initialize the new values
-        await AffiliateSchema.updateOne(
-            { promoCode: promoCode },
-            {
-                $set: {
-                    promoCodeID: promo.id,
-                    accountID: account.id,
-                    active: true,
-                },
-            }
-        );
-    } else {
-        // Wait for the values
-        const promo = await promoPromise;
-        const account = await accountPromise;
-
-        // Create a new affiliate
-        await AffiliateSchema.create({
-            promoCode: promoCode,
-            promoCodeID: promo.id,
-            accountID: account.id,
-        });
-    }
+    // Return success - MAYBE I SHOULD RETURN THE AFFILIATE SCHEMA INSTEAD
+    // I also want to clean up the types - if nothing works, then maybe just return undefined / null as a type and deal with that
+    return true;
 }
 
-// Create an onboarding link for the affiliate
-export async function onboardAffiliate(promoCode: string) {
-    // Initialize the database
-    await connectMongo();
+// // Initialize an affiliate OR revive a disabled affiliate account
+// export async function initializeAffiliate(promoCode: string) {
+//     // Initialize the database
+//     await connectMongo();
 
-    // Find the database entry that has the specified promo code
-    const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
-    if (!affiliate || !affiliate.active) {
-        throw new Error("Invalid promo code");
-    }
+//     // Make sure the promo code does not already exist
+//     const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
+//     if (affiliate && !affiliate.active) {
+//         throw new Error("Affiliate with this ID is active");
+//     }
 
-    // Create an onboarding link for the affiliate account
-    const accountLink = await stripe.accountLinks.create({
-        account: affiliate.accountID,
-        type: "account_onboarding",
-        refresh_url: `${siteURL}/onboarding/success=false`,
-        return_url: `${siteURL}/onboarding/success=true`,
-    });
+//     // Create promises for a new promo code and account
+//     const promoPromise = stripe.promotionCodes.create({
+//         coupon: COUPON_ID_NORMAL,
+//         code: promoCode,
+//     });
+//     const accountPromise = stripe.accounts.create({ type: "express" });
 
-    // Return the onboarding link
-    return accountLink.url;
-}
+//     // If there is an existing affiliate then reinitialize the values, otherwise create new ones
+//     if (affiliate) {
+//         // Wait for the values
+//         const promo = await promoPromise;
+//         const account = await accountPromise;
 
-// Disable the affiliate
-export async function disableAffiliate(promoCode: string) {
-    // Initialize the database
-    await connectMongo();
+//         // Update the affiliate status to active and initialize the new values
+//         await AffiliateSchema.updateOne(
+//             { promoCode: promoCode },
+//             {
+//                 $set: {
+//                     promoCodeID: promo.id,
+//                     accountID: account.id,
+//                     active: true,
+//                 },
+//             }
+//         );
+//     } else {
+//         // Wait for the values
+//         const promo = await promoPromise;
+//         const account = await accountPromise;
 
-    // Here we want to get the database entry of the affiliate
-    const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
-    if (!affiliate || !affiliate.active) {
-        throw new Error("Invalid promo code");
-    }
+//         // Create a new affiliate
+//         await AffiliateSchema.create({
+//             promoCode: promoCode,
+//             promoCodeID: promo.id,
+//             accountID: account.id,
+//         });
+//     }
+// }
 
-    // Now we want to reject the account and disable the promo code, as well as set the status to be inactive
-    const rejectAcc = stripe.accounts.reject(affiliate.accountID, {
-        reason: "other",
-    });
-    const disablePromo = stripe.promotionCodes.update(affiliate.promoCodeID, {
-        active: false,
-    });
-    const updateActive = AffiliateSchema.updateOne(
-        { promoCode: promoCode },
-        { $set: { active: false } }
-    );
+// // Create an onboarding link for the affiliate
+// export async function onboardAffiliate(promoCode: string) {
+//     // Initialize the database
+//     await connectMongo();
 
-    // Wait for the promises
-    await Promise.all([rejectAcc, disablePromo, updateActive]);
-}
+//     // Find the database entry that has the specified promo code
+//     const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
+//     if (!affiliate || !affiliate.active) {
+//         throw new Error("Invalid promo code");
+//     }
 
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// Used for testing different methods
-export async function testMethod() {
-    // So at the moment im trying to figure out some sort of way of reonboarding connected accounts that have disconnected from the platform
-    // How can I keep track of all accounts that are payable ???
-    // Maybe I can use retrieve capability ?
-    // Maybe look at the disabled reason ?
-    // Make sure this takes account for accounts that have been deleted as well (wrap in a try catch block Im assuming)
+//     // Create an onboarding link for the affiliate account
+//     const accountLink = await stripe.accountLinks.create({
+//         account: affiliate.accountID,
+//         type: "account_onboarding",
+//         refresh_url: `${siteURL}/onboarding/success=false`,
+//         return_url: `${siteURL}/onboarding/success=true`,
+//     });
 
-    // const response = await stripe.paymentIntents.retrieve(
-    //     "pi_1J7txZC7YoItP8TewPUhZvY7"
-    // );
+//     // Return the onboarding link
+//     return accountLink.url;
+// }
 
-    // const response = stripe.prices.list({ limit: 100 });
+// // Disable the affiliate
+// export async function disableAffiliate(promoCode: string) {
+//     // Initialize the database
+//     await connectMongo();
 
-    // const response = await stripe.checkout.sessions.retrieve(
-    //     "cs_test_a1KxhZsqYKjk1rViQuc9vpi7ldgrvSHx05KXbh46UX1sQ8fbBSYsStK3qz"
-    // );
+//     // Here we want to get the database entry of the affiliate
+//     const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
+//     if (!affiliate || !affiliate.active) {
+//         throw new Error("Invalid promo code");
+//     }
 
-    const response = await stripe.paymentIntents.retrieve(
-        "pi_1J9JrpC7YoItP8TeBAWnDPAU"
-    );
+//     // Now we want to reject the account and disable the promo code, as well as set the status to be inactive
+//     const rejectAcc = stripe.accounts.reject(affiliate.accountID, {
+//         reason: "other",
+//     });
+//     const disablePromo = stripe.promotionCodes.update(affiliate.promoCodeID, {
+//         active: false,
+//     });
+//     const updateActive = AffiliateSchema.updateOne(
+//         { promoCode: promoCode },
+//         { $set: { active: false } }
+//     );
 
-    return response;
-}
+//     // Wait for the promises
+//     await Promise.all([rejectAcc, disablePromo, updateActive]);
+// }
+
+// // -
+// // -
+// // -
+// // -
+// // -
+// // -
+// // -
+// // -
+// // -
+// // -
+// // -
+// // Used for testing different methods
+// export async function testMethod() {
+//     // So at the moment im trying to figure out some sort of way of reonboarding connected accounts that have disconnected from the platform
+//     // How can I keep track of all accounts that are payable ???
+//     // Maybe I can use retrieve capability ?
+//     // Maybe look at the disabled reason ?
+//     // Make sure this takes account for accounts that have been deleted as well (wrap in a try catch block Im assuming)
+
+//     // const response = await stripe.paymentIntents.retrieve(
+//     //     "pi_1J7txZC7YoItP8TewPUhZvY7"
+//     // );
+
+//     // const response = stripe.prices.list({ limit: 100 });
+
+//     // const response = await stripe.checkout.sessions.retrieve(
+//     //     "cs_test_a1KxhZsqYKjk1rViQuc9vpi7ldgrvSHx05KXbh46UX1sQ8fbBSYsStK3qz"
+//     // );
+
+//     const response = await stripe.paymentIntents.retrieve(
+//         "pi_1J9JrpC7YoItP8TeBAWnDPAU"
+//     );
+
+//     return response;
+// }
+
+// ********** I WANT TO GO THROUGH AND MOVE A LOT OF THESE METHODS INTO DIFFERENT FILES
