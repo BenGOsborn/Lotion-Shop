@@ -57,7 +57,7 @@ export default async function catalogue(
 
             // Return the checkout link
             res.status(200).end(checkoutData.url);
-        } catch {
+        } catch (e) {
             // Delete the promoCode cookie
             res.setHeader(
                 "Set-Cookie",
@@ -71,7 +71,7 @@ export default async function catalogue(
             );
 
             // Return error
-            res.status(500).end("Internal Server Error");
+            res.status(500).end(e.toString());
         }
     } else {
         res.status(400).end("Invalid method");

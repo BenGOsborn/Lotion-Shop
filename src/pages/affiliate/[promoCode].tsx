@@ -1,6 +1,6 @@
 import { GetServerSideProps, NextPage } from "next";
 import cookie from "cookie";
-import { promoCodeExists } from "../../utils/stripe";
+import { promoCodeExists } from "../../utils/affiliates";
 
 interface Props {}
 
@@ -9,7 +9,6 @@ const Affiliate: NextPage<Props> = () => {
 };
 
 export const getServerSideProps: GetServerSideProps = async ({
-    req,
     res,
     params,
 }) => {
