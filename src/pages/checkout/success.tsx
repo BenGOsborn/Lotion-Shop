@@ -4,6 +4,7 @@ import { GetServerSideProps, NextPage } from "next";
 import { useContext, useEffect } from "react";
 import { cartContext, clearCart } from "../../utils/cart";
 import { retrieveReceipt } from "../../utils/stripe";
+import Link from "next/link";
 
 interface Props {
     receiptURL: string;
@@ -19,12 +20,13 @@ const Success: NextPage<Props> = ({ receiptURL }) => {
     }, []);
 
     return (
-        <h1>
-            Hello world. Your receipt is{" "}
+        <p>
+            Success! You can find your receipt{" "}
             <a href={receiptURL} target="_blank">
-                {receiptURL}
+                here
             </a>
-        </h1>
+            . <Link href="/">Continue shopping</Link>.
+        </p>
     );
 };
 
@@ -41,8 +43,6 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
         // Return something
         return { props: {} as any };
     }
-
-    // ********* Maybe it is not loading in time ?
 
     try {
         // Get and pass the receipt as a prop

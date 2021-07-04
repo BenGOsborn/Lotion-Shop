@@ -177,18 +177,18 @@ const Checkout: NextPage<Props> = () => {
                         Checkout
                     </a>
                 </>
-            ) : null}
+            ) : (
+                <p>
+                    Cart is empty! <Link href="/">Shop now</Link>
+                </p>
+            )}
             {status ? (
                 status.success ? (
                     <p>{status.log}</p>
                 ) : (
                     <p>{status.log}</p>
                 )
-            ) : (
-                <p>
-                    Cart is empty! <Link href="/">Shop now</Link>
-                </p>
-            )}
+            ) : null}
         </>
     );
 };

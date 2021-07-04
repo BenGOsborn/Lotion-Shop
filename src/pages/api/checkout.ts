@@ -42,7 +42,7 @@ export default async function catalogue(
                 httpOnly: true,
                 secure: process.env.NODE_ENV !== "development",
                 maxAge: 60 * 60 * 24,
-                sameSite: "strict",
+                sameSite: "lax", // Required so the cookie can be accessed from the Stripe redirect
                 path: "/",
             }),
         ]);
