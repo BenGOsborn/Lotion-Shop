@@ -11,13 +11,13 @@ export const getServerSideProps: GetServerSideProps = async ({
     res,
     params,
 }) => {
-    // Get the promo code from the request
-    const promoCode: string = (params as any).promoCode;
+    // Get the affiliate id from the request
+    const affiliateID: string = (params as any).affiliateID;
 
     // Create an onboarding link for the user and redirect them to the onboard or otherwise just redirect them to the home screen
     let redirectURL: string;
     try {
-        redirectURL = await onboardAffiliate(promoCode);
+        redirectURL = await onboardAffiliate(affiliateID);
     } catch {
         redirectURL = "/"; // Maybe I want a better error message page ? (dont redirect, just return an error page)
     }

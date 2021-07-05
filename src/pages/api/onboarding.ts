@@ -7,27 +7,29 @@ export default async function onboarding(
 ) {
     if (req.method === "POST") {
         // Get the params from the request
-        const { promoCode }: { promoCode: string } = req.body;
+        const { affiliateID }: { affiliateID: string } = req.body;
 
-        // Verify the promo code is given
-        if (!promoCode) {
+        // Verify the affiliate ID is given
+        if (!affiliateID) {
             return res
                 .status(400)
                 .end("Promo code to onboard account for is required");
         }
 
         // Initialize the affiliate
-        await initializeAffiliate(promoCode);
+        await initializeAffiliate(affiliateID);
 
         // Return the affiliate link
         return res.status(200).end("Successfully initialized affiliate");
     } else if (req.method === "DELETE") {
         // Get the params from the request
-        const { password, promoCode }: { password: string; promoCode: string } =
-            req.body;
+        const {
+            password,
+            affiliateID,
+        }: { password: string; affiliateID: string } = req.body;
 
         // Verify the params are given
-        if (!password || !promoCode) {
+        if (!password || !affiliateID) {
             return res.status(400).end("Missing parameter");
         }
 
@@ -37,7 +39,7 @@ export default async function onboarding(
         }
 
         // Delete the affiliate
-        await deleteAffiliate(promoCode);
+        await deleteAffiliate(affiliateID);
 
         // Return success
         return res.status(200).end("Successfully disabled affiliate");

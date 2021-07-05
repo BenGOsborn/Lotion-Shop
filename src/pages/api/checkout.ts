@@ -13,9 +13,9 @@ export default async function catalogue(
 
         // Get the cookies
         const {
-            customerID, // Make sure this cant be exploited to make purchases on behalf of a user
-            promoCode,
-        }: { customerID?: string; promoCode?: string } = req.cookies;
+            customerID,
+            affiliate,
+        }: { customerID?: string; affiliate?: string } = req.cookies;
 
         // Check that the priceIDs exist
         if (typeof items === "undefined" || items.length === 0) {
@@ -27,10 +27,10 @@ export default async function catalogue(
             const checkoutData = await createCheckoutSession(
                 items,
                 customerID,
-                promoCode
+                affiliate
             );
 
-            // Set the customer ID cookie, the checkout session ID cookie, and delete the promoCode cookier
+            // Set the customer ID cookie, the checkout session ID cookie, and delete the affiliate ID cookie
             res.setHeader("Set-Cookie", [
                 cookie.serialize("customerID", checkoutData.customerID, {
                     httpOnly: true,
@@ -46,7 +46,7 @@ export default async function catalogue(
                     sameSite: "lax", // Required so the cookie can be accessed from the Stripe redirect
                     path: "/",
                 }),
-                cookie.serialize("promoCode", "", {
+                cookie.serialize("affiliateID", "", {
                     httpOnly: true,
                     secure: process.env.NODE_ENV !== "development",
                     maxAge: 0,
@@ -58,10 +58,10 @@ export default async function catalogue(
             // Return the checkout link
             res.status(200).end(checkoutData.url);
         } catch (e) {
-            // Delete the promoCode cookie
+            // Delete the affiliate cookie
             res.setHeader(
                 "Set-Cookie",
-                cookie.serialize("promoCode", "", {
+                cookie.serialize("affiliateID", "", {
                     httpOnly: true,
                     secure: process.env.NODE_ENV !== "development",
                     maxAge: 0,
@@ -69,8 +69,6 @@ export default async function catalogue(
                     path: "/",
                 })
             );
-
-            console.log(e.stack);
 
             // Return error
             res.status(500).end(e.toString());

@@ -121,7 +121,7 @@ export async function cartPrice(items: CartItem[]) {
 export async function createCheckoutSession(
     items: CartItem[],
     customerID?: string,
-    promoCode?: string
+    affiliateID?: string
 ) {
     // Connect to the database
     connectMongo();
@@ -147,11 +147,11 @@ export async function createCheckoutSession(
     let checkoutSession: Stripe.Response<Stripe.Checkout.Session>;
 
     // If there is a promocode apply the discount and pay the funds to the specified account
-    if (promoCode) {
-        // Get the affiliate with the specified promo code
-        const affiliate = await AffiliateSchema.findOne({ promoCode });
+    if (affiliateID) {
+        // Get the affiliate with the specified affiliate id
+        const affiliate = await AffiliateSchema.findOne({ affiliateID });
         if (!affiliate) {
-            throw new Error("Invalid promo code");
+            throw new Error("No affiliate with this affiliate ID exists");
         }
 
         // Get the amount to pay the referrer
@@ -189,7 +189,6 @@ export async function createCheckoutSession(
         });
     }
 
-    // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
     // Add tax option to checkout ?
 
     // Return the URL to the checkout and the id of the session and the user to be stored as a cookie
