@@ -70,6 +70,8 @@ export default async function catalogue(
                 })
             );
 
+            console.log(e.stack);
+
             // Return error
             res.status(500).end(e.toString());
         }

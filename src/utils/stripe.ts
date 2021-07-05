@@ -143,11 +143,6 @@ export async function createCheckoutSession(
         customerID = (await stripe.customers.create()).id;
     }
 
-    // If there is a promo code then make this session into one with the discount already applied INSIDE of a cookie (valid for 5 days) (they get promo code from a custom link)
-    // This means I will have to set up the affiliates section before I can properly implement this (I need to apply the discounts param to the checkout)
-
-    // Add tax option to checkout ?
-
     // Create the checkout session
     let checkoutSession: Stripe.Response<Stripe.Checkout.Session>;
 
@@ -161,7 +156,7 @@ export async function createCheckoutSession(
 
         // Get the amount to pay the referrer
         const price = await cartPrice(items);
-        const payout = (price * REFERRER_PORTION).toFixed(2);
+        const payout = parseFloat((price * REFERRER_PORTION).toFixed(2));
 
         // Create the checkout session with the discounts applied and the amount to pay the referrer
         checkoutSession = await stripe.checkout.sessions.create({
@@ -173,14 +168,11 @@ export async function createCheckoutSession(
             mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
             shipping_address_collection: { allowed_countries: ["AU"] },
             shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
-            discounts: [
-                affiliate.promoCodeID as Stripe.Checkout.SessionCreateParams.Discount,
-            ],
-            // @ts-ignore
-            transfer_data: {
-                // If something goes wrong with the promo code, its most likely this line
-                amount: payout,
-                destination: affiliate.accountID,
+            payment_intent_data: {
+                transfer_data: {
+                    amount: payout,
+                    destination: affiliate.accountID,
+                },
             },
         });
     } else {
@@ -198,6 +190,7 @@ export async function createCheckoutSession(
     }
 
     // Well MAYBE, what we should do, is have affiliates send out a link which automatically transfers them a specific amount of money if it is valid VIA a cookie
+    // Add tax option to checkout ?
 
     // Return the URL to the checkout and the id of the session and the user to be stored as a cookie
     return {
@@ -220,26 +213,6 @@ export async function createCheckoutSession(
 // -
 // Used for testing different methods
 export async function testMethod() {
-    // So at the moment im trying to figure out some sort of way of reonboarding connected accounts that have disconnected from the platform
-    // How can I keep track of all accounts that are payable ???
-    // Maybe I can use retrieve capability ?
-    // Maybe look at the disabled reason ?
-    // Make sure this takes account for accounts that have been deleted as well (wrap in a try catch block Im assuming)
-
-    // const response = await stripe.paymentIntents.retrieve(
-    //     "pi_1J7txZC7YoItP8TewPUhZvY7"
-    // );
-
-    // const response = stripe.prices.list({ limit: 100 });
-
-    // const response = await stripe.checkout.sessions.retrieve(
-    //     "cs_test_a1KxhZsqYKjk1rViQuc9vpi7ldgrvSHx05KXbh46UX1sQ8fbBSYsStK3qz"
-    // );
-
-    // const response = await stripe.paymentIntents.retrieve(
-    //     "pi_1J9JrpC7YoItP8TeBAWnDPAU"
-    // );
-
     // Check here that disabling promo codes works (if not I will have to set it to be active on stripe if it already does exist)
     const response = await stripe.promotionCodes.retrieve(
         "promo_1J8NUmC7YoItP8TejvnAbQgo"

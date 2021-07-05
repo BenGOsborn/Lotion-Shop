@@ -2,6 +2,7 @@ import AffiliateSchema from "../mongooseModels/affiliate";
 import connectMongo from "./connectMongo";
 import { COUPON_ID_NORMAL, siteURL } from "./constants";
 import { stripe } from "./stripe";
+import Stripe from "stripe";
 
 export async function promoCodeExists(promoCode: string) {
     // Connect to the database
@@ -28,38 +29,38 @@ export async function initializeAffiliate(promoCode: string) {
         throw new Error("Affiliate with this promo code exists");
     }
 
-    // Create promises for a new promo code and account
-    // ********* Instead of creating a new one, check if one exists with that name first, if it does then set its active status to be true and set the ID to be that promo code ID
-
     // Retrieve the promo code with the same name
-    let existingCode: string | undefined = undefined;
+    let promoCodeID: string | undefined = undefined;
 
     const promoCodes = await stripe.promotionCodes.list();
     for (const code of promoCodes.data) {
         if (code.code === promoCode) {
-            existingCode = code.id;
+            promoCodeID = code.id;
             break;
         }
     }
 
-    // ********** THen I need to check what if the ID exists on Stripe for some reason ? I also need to then just update instead of making a new one
+    // Make a new promo code if it does not exist else set the existing one to active
+    if (promoCodeID) {
+        // Set the promo code to be active
+        await stripe.promotionCodes.update(promoCodeID, {
+            active: true,
+        });
+    } else {
+        // Create a new promo code ID
+        promoCodeID = (
+            await stripe.promotionCodes.create({
+                coupon: COUPON_ID_NORMAL,
+                code: promoCode,
+            })
+        ).id;
+    }
 
-    const promoPromise = stripe.promotionCodes.create({
-        coupon: COUPON_ID_NORMAL,
-        code: promoCode,
-    });
-    const accountPromise = stripe.accounts.create({ type: "express" });
-
-    // Wait for the values
-    const promo = await promoPromise;
-    const account = await accountPromise;
+    // Create a new account
+    const accountID = (await stripe.accounts.create({ type: "express" })).id;
 
     // Create a new affiliate and save in the database
-    await AffiliateSchema.create({
-        promoCode: promoCode,
-        promoCodeID: promo.id,
-        accountID: account.id,
-    });
+    await AffiliateSchema.create({ promoCode, promoCodeID, accountID });
 }
 
 // Create an onboarding link for the affiliate
@@ -68,7 +69,7 @@ export async function onboardAffiliate(promoCode: string) {
     await connectMongo();
 
     // Find the database entry that has the specified promo code
-    const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
+    const affiliate = await AffiliateSchema.findOne({ promoCode });
     if (!affiliate) {
         throw new Error("No existing affiliate with this promo code");
     }
@@ -77,8 +78,8 @@ export async function onboardAffiliate(promoCode: string) {
     const accountLink = await stripe.accountLinks.create({
         account: affiliate.accountID,
         type: "account_onboarding",
-        refresh_url: `${siteURL}/`, // Create better success and failure messages
-        return_url: `${siteURL}/`,
+        refresh_url: `${siteURL}`, // ************* Create better success and failure messages
+        return_url: `${siteURL}`,
     });
 
     // Return the onboarding link
@@ -91,7 +92,7 @@ export async function deleteAffiliate(promoCode: string) {
     await connectMongo();
 
     // Here we want to get the database entry of the affiliate
-    const affiliate = await AffiliateSchema.findOne({ promoCode: promoCode });
+    const affiliate = await AffiliateSchema.findOne({ promoCode });
     if (!affiliate) {
         throw new Error("No existing affiliate with this promo code");
     }
@@ -103,7 +104,7 @@ export async function deleteAffiliate(promoCode: string) {
     const disablePromo = stripe.promotionCodes.update(affiliate.promoCodeID, {
         active: false,
     });
-    const deleteAffiliate = AffiliateSchema.deleteOne({ promoCode: promoCode });
+    const deleteAffiliate = AffiliateSchema.deleteOne({ promoCode });
 
     // Wait for the promises
     await Promise.all([rejectAcc, disablePromo, deleteAffiliate]);

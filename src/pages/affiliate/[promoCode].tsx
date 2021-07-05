@@ -33,7 +33,7 @@ export const getServerSideProps: GetServerSideProps = async ({
 
     // Redirect at the end here too to the landing page
     res.statusCode = 302;
-    res.setHeader("Location", "/");
+    res.setHeader("Location", "/"); // **** Maybe provide some sort of notification for if a valid code is set
 
     // Pass something to the props
     return { props: {} as Props };

@@ -14,4 +14,4 @@ export const SHIPPING_ID_NORMAL = "shr_1J9GyTC7YoItP8Te9w4rQSDQ";
 export const COUPON_ID_NORMAL = "lRQxsfyI";
 
 // The portion paid out to referrers
-export const REFERRER_PORTION = 0.2;
+export const REFERRER_PORTION = 0.15;

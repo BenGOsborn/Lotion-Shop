@@ -1,10 +1,11 @@
 import mongoose, { Document } from "mongoose";
 
 export interface IAffiliate extends Document {
-    promoCode: string;
     promoCodeID: string;
     accountID: string;
 }
+
+// ************** I have just removed the promoCode from this - replace this with the id of the object - good luck
 
 // Define the schemas for the affiliates
 //  - Promo code used for referring out customers (can be read by the affiliate)
@@ -12,7 +13,6 @@ export interface IAffiliate extends Document {
 //  - Account ID is used for transfering funds on a successful referral
 const affiliateSchema = new mongoose.Schema(
     {
-        promoCode: { type: String, required: true },
         promoCodeID: { type: String, required: true },
         accountID: { type: String, required: true },
     },
