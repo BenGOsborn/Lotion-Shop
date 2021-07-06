@@ -63,7 +63,7 @@ const Checkout: NextPage<Props> = () => {
 
                 setCheckoutItems(newCheckoutItems);
             })
-            .catch((error: AxiosError) => {
+            .catch((error: AxiosError<string>) => {
                 // Log an error message
                 setStatus({ success: false, log: error.response?.data });
             });
@@ -80,7 +80,7 @@ const Checkout: NextPage<Props> = () => {
                 // The cookies should be set from the response - redirect to the checkout URL
                 router.push(res.data);
             })
-            .catch((error: AxiosError) => {
+            .catch((error: AxiosError<string>) => {
                 // Log the error message
                 setStatus({ success: false, log: error.response?.data });
             });

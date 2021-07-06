@@ -19,6 +19,8 @@ const Onboarding: NextPage<Props> = ({ redirect, affiliateID }) => {
     useEffect(() => {
         if (!redirect) {
             // Create a prompt to create a password
+
+            // Whether the operation was successful or not
             let success = false;
 
             while (!success) {
@@ -41,7 +43,7 @@ const Onboarding: NextPage<Props> = ({ redirect, affiliateID }) => {
                             // Redirect to the onboarding URL
                             router.push(result.data);
                         })
-                        .catch((error: AxiosError) => {
+                        .catch((error: AxiosError<string>) => {
                             // Log the error message
                             alert(error.response?.data);
                         });
