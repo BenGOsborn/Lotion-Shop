@@ -9,7 +9,7 @@ export interface IAffiliate extends Document {
 // Define the schemas for the affiliates
 //  - Affiliate ID is used for identifying the referrer
 //  - Account ID is used for transfering funds on a successful referral
-//  - Password is the password required to access the account
+//  - Password is the password required to access the affiliate account
 const affiliateSchema = new mongoose.Schema(
     {
         affiliateID: { type: String, required: true },
