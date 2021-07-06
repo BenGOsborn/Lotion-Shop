@@ -26,35 +26,48 @@ export default async function catalogue(
             affiliateID,
         }: { customerID?: string; affiliateID?: string } = req.cookies;
 
+        // Delete the affiliate cookie
+        res.setHeader(
+            "Set-Cookie",
+            cookie.serialize("affiliateID", "", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV !== "development",
+                maxAge: 0,
+                sameSite: "strict",
+                path: "/",
+            })
+        );
+
         // Check that the priceIDs exist
         if (typeof items === "undefined" || items.length === 0) {
             return res.status(400).end("Missing cost IDs");
         }
 
-        try {
-            // Generate the items to be featured in the checkout
-            const lineItems =
-                new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
-                    items.length
-                );
+        // Generate the items to be featured in the checkout
+        const lineItems =
+            new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
+                items.length
+            );
 
-            for (let i = 0; i < items.length; i++) {
-                lineItems[i] = {
-                    price: items[i].priceID,
-                    quantity: Math.min(items[i].quantity, MAX_QUANTITY),
-                };
-            }
+        for (let i = 0; i < items.length; i++) {
+            lineItems[i] = {
+                price: items[i].priceID,
+                quantity: Math.min(items[i].quantity, MAX_QUANTITY),
+            };
+        }
 
-            // If the customer is not specified, create a new customer
-            if (typeof customerID === "undefined") {
-                customerID = (await stripe.customers.create()).id;
-            }
+        // If the customer is not specified, create a new customer
+        if (typeof customerID === "undefined") {
+            customerID = (await stripe.customers.create()).id;
+        }
 
-            // Create the checkout session
-            let checkoutSession: Stripe.Response<Stripe.Checkout.Session>;
+        // Create the checkout session
+        let checkoutSession: Stripe.Response<Stripe.Checkout.Session> | null =
+            null;
 
-            // If there is a promocode apply the discount and pay the funds to the specified account
-            if (affiliateID) {
+        // If there is a promocode apply the discount and pay the funds to the specified account
+        if (affiliateID) {
+            try {
                 // Connect to the database
                 await connectMongo();
 
@@ -62,103 +75,97 @@ export default async function catalogue(
                 const affiliate = await AffiliateSchema.findOne({
                     affiliateID,
                 });
-                if (!affiliate) {
-                    return res
-                        .status(400)
-                        .end("No affiliate with this affiliate ID exists");
+                if (affiliate) {
+                    // Get the total price of the items (quantities and prices)
+                    let total = 0;
+
+                    for (const item of items) {
+                        const price = await stripe.prices.retrieve(
+                            item.priceID
+                        );
+                        total += (price.unit_amount as number) * item.quantity;
+                    }
+
+                    // Get the amount to pay the affiliate
+                    const payout = parseFloat(
+                        (total * REFERRER_PORTION).toFixed(2)
+                    );
+
+                    // Verify that the users details are submitted
+                    const account = await stripe.accounts.retrieve(
+                        affiliate.accountID
+                    );
+                    if (account.details_submitted) {
+                        // Create the checkout session with the discounts applied and the amount to pay the referrer
+                        checkoutSession = await stripe.checkout.sessions.create(
+                            {
+                                cancel_url: `${siteURL}/checkout`,
+                                success_url: `${siteURL}/checkout/success`,
+                                payment_method_types: ["card"],
+                                line_items: lineItems,
+                                customer: customerID,
+                                mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
+                                shipping_address_collection: {
+                                    allowed_countries: ["AU"],
+                                },
+                                shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
+                                payment_intent_data: {
+                                    transfer_data: {
+                                        amount: payout,
+                                        destination: affiliate.accountID,
+                                    },
+                                },
+                            }
+                        );
+                    }
                 }
-
-                // Get the total price of the items (quantities and prices)
-                let total = 0;
-
-                for (const item of items) {
-                    const price = await stripe.prices.retrieve(item.priceID);
-                    total += (price.unit_amount as number) * item.quantity;
-                }
-
-                // Get the amount to pay the affiliate
-                const payout = parseFloat(
-                    (total * REFERRER_PORTION).toFixed(2)
-                );
-
-                // Create the checkout session with the discounts applied and the amount to pay the referrer
-                checkoutSession = await stripe.checkout.sessions.create({
-                    cancel_url: `${siteURL}/checkout`,
-                    success_url: `${siteURL}/checkout/success`,
-                    payment_method_types: ["card"],
-                    line_items: lineItems,
-                    customer: customerID,
-                    mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
-                    shipping_address_collection: { allowed_countries: ["AU"] },
-                    shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
-                    payment_intent_data: {
-                        transfer_data: {
-                            amount: payout,
-                            destination: affiliate.accountID,
-                        },
-                    },
-                });
-            } else {
-                // *********** I also want to allow this to be called when there is a failure with the affiliate - how can I do this ? (have some big else if chain that returns)
-
-                // Create the standard checkout session
-                checkoutSession = await stripe.checkout.sessions.create({
-                    cancel_url: `${siteURL}/checkout`,
-                    success_url: `${siteURL}/checkout/success`,
-                    payment_method_types: ["card"],
-                    line_items: lineItems,
-                    customer: customerID,
-                    mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
-                    shipping_address_collection: { allowed_countries: ["AU"] },
-                    shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
-                });
-            }
-
-            // Add tax option to checkout ?
-
-            // Set the customer ID cookie, the checkout session ID cookie, and delete the affiliate ID cookie
-            res.setHeader("Set-Cookie", [
-                cookie.serialize("customerID", customerID, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV !== "development",
-                    maxAge: 60 * 60 * 24 * 365 * 100,
-                    sameSite: "strict",
-                    path: "/",
-                }),
-                cookie.serialize("checkoutID", checkoutSession.id, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV !== "development",
-                    maxAge: 60 * 60 * 24,
-                    sameSite: "lax", // Required so the cookie can be accessed from the Stripe redirect
-                    path: "/",
-                }),
-                cookie.serialize("affiliateID", "", {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV !== "development",
-                    maxAge: 0,
-                    sameSite: "strict",
-                    path: "/",
-                }),
-            ]);
-
-            // Return the checkout link
-            res.status(200).end(checkoutSession.url);
-        } catch (e) {
-            // ********* Maybe there is a better way of working this in ? - Delete the affiliate cookie
-            res.setHeader(
-                "Set-Cookie",
-                cookie.serialize("affiliateID", "", {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV !== "development",
-                    maxAge: 0,
-                    sameSite: "strict",
-                    path: "/",
-                })
-            );
-
-            // Return error
-            res.status(500).end(e.toString());
+            } catch {}
         }
+
+        // If no session has been already created, create one with no affiliate
+        if (checkoutSession === null) {
+            // Create the standard checkout session
+            checkoutSession = await stripe.checkout.sessions.create({
+                cancel_url: `${siteURL}/checkout`,
+                success_url: `${siteURL}/checkout/success`,
+                payment_method_types: ["card"],
+                line_items: lineItems,
+                customer: customerID,
+                mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
+                shipping_address_collection: { allowed_countries: ["AU"] },
+                shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
+            });
+        }
+
+        // Set the customer ID cookie, the checkout session ID cookie, and delete the affiliate ID cookie
+        res.setHeader("Set-Cookie", [
+            cookie.serialize("customerID", customerID, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV !== "development",
+                maxAge: 60 * 60 * 24 * 365 * 100,
+                sameSite: "strict",
+                path: "/",
+            }),
+            cookie.serialize("checkoutID", checkoutSession.id, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV !== "development",
+                maxAge: 60 * 60 * 24,
+                sameSite: "lax", // Required so the cookie can be accessed from the Stripe redirect
+                path: "/",
+            }),
+            cookie.serialize("affiliateID", "", {
+                httpOnly: true,
+                secure: process.env.NODE_ENV !== "development",
+                maxAge: 0,
+                sameSite: "strict",
+                path: "/",
+            }),
+        ]);
+
+        // Add tax option to checkout ?
+
+        // Return the checkout link
+        res.status(200).end(checkoutSession.url);
     } else {
         res.status(400).end("Invalid method");
     }
