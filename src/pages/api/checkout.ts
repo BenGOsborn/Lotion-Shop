@@ -26,18 +26,6 @@ export default async function catalogue(
             affiliateID,
         }: { customerID?: string; affiliateID?: string } = req.cookies;
 
-        // Delete the affiliate cookie
-        res.setHeader(
-            "Set-Cookie",
-            cookie.serialize("affiliateID", "", {
-                httpOnly: true,
-                secure: process.env.NODE_ENV !== "development",
-                maxAge: 0,
-                sameSite: "strict",
-                path: "/",
-            })
-        );
-
         // Check that the priceIDs exist
         if (typeof items === "undefined" || items.length === 0) {
             return res.status(400).end("Missing cost IDs");
@@ -109,6 +97,7 @@ export default async function catalogue(
                                     allowed_countries: ["AU"],
                                 },
                                 shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
+                                automatic_tax: { enabled: true },
                                 payment_intent_data: {
                                     transfer_data: {
                                         amount: payout,
@@ -134,6 +123,7 @@ export default async function catalogue(
                 mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
                 shipping_address_collection: { allowed_countries: ["AU"] },
                 shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
+                automatic_tax: { enabled: true }, // **** Please look more into this (should I use the tax_id_collection instead ?)
             });
         }
 
@@ -161,8 +151,6 @@ export default async function catalogue(
                 path: "/",
             }),
         ]);
-
-        // Add tax option to checkout ?
 
         // Return the checkout link
         res.status(200).end(checkoutSession.url);
