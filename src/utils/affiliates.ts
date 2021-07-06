@@ -41,7 +41,7 @@ export async function initializeAffiliate(affiliateID: string) {
     await AffiliateSchema.create({ affiliateID, accountID });
 }
 
-// Create an onboarding link for the affiliate
+// Redirect the affiliate to the appropriate link if they are authorized
 export async function onboardAffiliate(affiliateID: string) {
     // Initialize the database
     await connectMongo();

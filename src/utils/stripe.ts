@@ -213,8 +213,8 @@ export async function createCheckoutSession(
 // Used for testing different methods
 export async function testMethod() {
     // Check a disabled account
-    const response = await stripe.promotionCodes.retrieve(
-        "promo_1J8NUmC7YoItP8TejvnAbQgo"
+    const response = await stripe.accounts.createLoginLink(
+        "acct_1JA14s2EwG5uxF7G"
     );
 
     return response;

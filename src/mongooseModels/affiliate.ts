@@ -3,15 +3,18 @@ import mongoose, { Document } from "mongoose";
 export interface IAffiliate extends Document {
     affiliateID: string;
     accountID: string;
+    password: string | null;
 }
 
 // Define the schemas for the affiliates
 //  - Affiliate ID is used for identifying the referrer
 //  - Account ID is used for transfering funds on a successful referral
+//  - Password is the password required to access the account
 const affiliateSchema = new mongoose.Schema(
     {
         affiliateID: { type: String, required: true },
         accountID: { type: String, required: true },
+        password: { type: String, default: null },
     },
     { timestamps: true }
 );
