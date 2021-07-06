@@ -11,9 +11,7 @@ export default async function onboarding(
 
         // Verify the affiliate ID is given
         if (!affiliateID) {
-            return res
-                .status(400)
-                .end("Promo code to onboard account for is required");
+            return res.status(400).end("Affiliate ID is required");
         }
 
         // Initialize the affiliate
@@ -42,7 +40,7 @@ export default async function onboarding(
         await deleteAffiliate(affiliateID);
 
         // Return success
-        return res.status(200).end("Successfully disabled affiliate");
+        return res.status(200).end("Successfully deleted affiliate");
     } else {
         res.status(400).end("Invalid method");
     }

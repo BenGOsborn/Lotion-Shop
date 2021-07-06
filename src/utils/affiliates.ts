@@ -3,7 +3,8 @@ import connectMongo from "./connectMongo";
 import { siteURL } from "./constants";
 import { stripe } from "./stripe";
 
-export async function promoCodeExists(affiliateID: string) {
+// Check if an affiliate ID exists
+export async function affiliateIDExists(affiliateID: string) {
     // Connect to the database
     connectMongo();
 
@@ -13,8 +14,13 @@ export async function promoCodeExists(affiliateID: string) {
         return false;
     }
 
-    // Return true
-    return true;
+    // Return true if the account is payable else false
+    const account = await stripe.accounts.retrieve(affiliate.accountID);
+    if (account.details_submitted) {
+        return true;
+    }
+
+    return false;
 }
 
 // Initialize an affiliate
@@ -44,6 +50,12 @@ export async function onboardAffiliate(affiliateID: string) {
     const affiliate = await AffiliateSchema.findOne({ affiliateID });
     if (!affiliate) {
         throw new Error("No existing affiliate with this affiliate ID");
+    }
+
+    // Return true if the account is payable else false
+    const account = await stripe.accounts.retrieve(affiliate.accountID);
+    if (account.details_submitted) {
+        throw new Error("This affiliate has already been onboarded");
     }
 
     // Create an onboarding link for the affiliate account

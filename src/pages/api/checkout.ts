@@ -14,8 +14,8 @@ export default async function catalogue(
         // Get the cookies
         const {
             customerID,
-            affiliate,
-        }: { customerID?: string; affiliate?: string } = req.cookies;
+            affiliateID,
+        }: { customerID?: string; affiliateID?: string } = req.cookies;
 
         // Check that the priceIDs exist
         if (typeof items === "undefined" || items.length === 0) {
@@ -27,7 +27,7 @@ export default async function catalogue(
             const checkoutData = await createCheckoutSession(
                 items,
                 customerID,
-                affiliate
+                affiliateID
             );
 
             // Set the customer ID cookie, the checkout session ID cookie, and delete the affiliate ID cookie

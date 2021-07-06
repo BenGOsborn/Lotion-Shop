@@ -212,22 +212,10 @@ export async function createCheckoutSession(
 // -
 // Used for testing different methods
 export async function testMethod() {
-    // Check here that disabling promo codes works (if not I will have to set it to be active on stripe if it already does exist)
+    // Check a disabled account
     const response = await stripe.promotionCodes.retrieve(
         "promo_1J8NUmC7YoItP8TejvnAbQgo"
     );
-
-    // const response = await stripe.promotionCodes.create({
-    //     coupon: "lRQxsfyI",
-    //     code: "MYTESTXD",
-    // });
-
-    // const response = await stripe.promotionCodes.update(
-    //     "promo_1J9eTxC7YoItP8TehlS2Qwdu",
-    //     { active: true }
-    // );
-
-    // OK, so the way that the promo code works is if a code is active, another one cannot be created, but if one is inactive it can be created OR set to be active
 
     return response;
 }
