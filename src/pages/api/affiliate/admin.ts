@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { initializeAffiliate, deleteAffiliate } from "../../utils/affiliates";
+import {
+    initializeAffiliate,
+    deleteAffiliate,
+} from "../../../utils/affiliates";
 
-export default async function onboarding(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+export default async function admin(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "POST") {
         // Get the params from the request
         const { affiliateID }: { affiliateID: string } = req.body;

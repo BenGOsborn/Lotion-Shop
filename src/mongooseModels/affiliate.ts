@@ -14,7 +14,7 @@ const affiliateSchema = new mongoose.Schema(
     {
         affiliateID: { type: String, required: true },
         accountID: { type: String, required: true },
-        password: { type: String, default: null },
+        password: { type: String, default: "" },
     },
     { timestamps: true }
 );

@@ -4,26 +4,48 @@ import connectMongo from "../../../utils/connectMongo";
 import AffiliateSchema from "../../../mongooseModels/affiliate";
 import { useEffect } from "react";
 import { useRouter } from "next/dist/client/router";
+import axios, { AxiosError } from "axios";
+import { OnboardParams } from "../../api/affiliate";
 
 interface Props {
     redirect: boolean;
     affiliateID?: string;
-    hasPassword?: boolean;
 }
 
-const Onboarding: NextPage<Props> = ({
-    redirect,
-    affiliateID,
-    hasPassword,
-}) => {
+const Onboarding: NextPage<Props> = ({ redirect, affiliateID }) => {
     const router = useRouter();
 
-    // Conditionally render something if boolean
+    // Get the params
     useEffect(() => {
-        // I want to provide a prompt, if it is closed then nothing should occur
         if (!redirect) {
-            if (hasPassword) {
-                const password = prompt("Enter your password");
+            // Create a prompt to create a password
+            let success = false;
+
+            while (!success) {
+                // Get the password and send it
+                const password = prompt(
+                    `Create a password for affiliate with ID '${affiliateID}'`
+                );
+
+                // If there is a password make a request to the API route to get an onboarding link which we will redirect to
+                if (password) {
+                    axios
+                        .patch<string>("/api/affiliate", {
+                            affiliateID,
+                            password,
+                        } as OnboardParams)
+                        .then((result) => {
+                            // Set success
+                            success = true;
+
+                            // Redirect to the onboarding URL
+                            router.push(result.data);
+                        })
+                        .catch((error: AxiosError) => {
+                            // Log the error message
+                            alert(error.response?.data);
+                        });
+                }
             }
         }
     }, []);
@@ -35,13 +57,6 @@ export const getServerSideProps: GetServerSideProps = async ({
     res,
     params,
 }) => {
-    // I might have to move some of those functions out of the utils and such (since they are only one offs)
-
-    // This should get the affiliate ID from the param
-    // It will check if the account has been onboarded yet - if it has, then redirect to the portal (server side redirect)
-    // If the account has not been onboarded yet, check if the user has given a password, if they have then ask for the password then redirect them, if not then require their password twice and redirect them to onboarding
-    // On a successful onboard, they will be redirected to the portal where they can log in with their details, and will then be redirected to their Stripe dashboard
-
     // Connect to the database
     await connectMongo();
 
@@ -51,7 +66,7 @@ export const getServerSideProps: GetServerSideProps = async ({
     // Attempt to get the affiliate
     const affiliate = await AffiliateSchema.findOne({ affiliateID });
     if (!affiliate) {
-        // Invalid affiliate id - redirect home
+        // Invalid affiliate id - redirect to home page
         res.statusCode = 302;
         res.setHeader("Location", "/");
 
@@ -69,26 +84,13 @@ export const getServerSideProps: GetServerSideProps = async ({
 
             return { props: { redirect: true } as Props };
         } else {
-            // Check if the users password has been specified
-            if (affiliate.password === null) {
-                // User will be prompted to make a password
-                return {
-                    props: {
-                        redirect: false,
-                        hasPassword: false,
-                        affiliateID,
-                    } as Props,
-                };
-            } else {
-                // User will be prompted to use their password
-                return {
-                    props: {
-                        redirect: false,
-                        hasPassword: true,
-                        affiliateID,
-                    } as Props,
-                };
-            }
+            // User will be prompted to make a password
+            return {
+                props: {
+                    redirect: false,
+                    affiliateID,
+                } as Props,
+            };
         }
     }
 };

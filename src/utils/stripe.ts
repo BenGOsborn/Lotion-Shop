@@ -214,7 +214,7 @@ export async function createCheckoutSession(
 export async function testMethod() {
     // Check a disabled account
     const response = await stripe.accounts.createLoginLink(
-        "acct_1JA14s2EwG5uxF7G"
+        "acct_1J9ocC2EsaOODx7u"
     );
 
     return response;
