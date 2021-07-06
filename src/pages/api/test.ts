@@ -1,11 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { testMethod } from "../../utils/stripe";
+import { stripe } from "../../utils/stripe";
+import connectMongo from "../../utils/connectMongo";
 
 export default async function test(req: NextApiRequest, res: NextApiResponse) {
     // Make sure this request is not accessed on production
     if (process.env.NODE_ENV !== "production") {
-        // Call the test method
-        const response = await testMethod();
+        // Test out some code through the test API route
+
+        const response = await stripe.accounts.retrieve(
+            "acct_1JA14s2EwG5uxF7G"
+        );
 
         // Send the response
         return res.status(200).json(response);

@@ -3,8 +3,8 @@
 import { GetServerSideProps, NextPage } from "next";
 import { useContext, useEffect } from "react";
 import { cartContext, clearCart } from "../../utils/cart";
-import { retrieveReceipt } from "../../utils/stripe";
 import Link from "next/link";
+import { stripe } from "../../utils/stripe";
 
 interface Props {
     receiptURL: string;
@@ -45,9 +45,21 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
     }
 
     try {
-        // Get and pass the receipt as a prop
-        const receipt = await retrieveReceipt(checkoutID);
+        // Get the checkout
+        const checkoutSession = await stripe.checkout.sessions.retrieve(
+            checkoutID
+        );
 
+        // Get the payment intent from the session
+        const paymentIntentID = checkoutSession.payment_intent;
+        const paymentIntent = await stripe.paymentIntents.retrieve(
+            paymentIntentID as string
+        );
+
+        // Get the url of the receipt and return it
+        const receipt = paymentIntent.charges.data[0].receipt_url;
+
+        // Pass the receipt through
         return { props: { receiptURL: receipt } as Props };
     } catch {
         // Redirect the user to the checkout

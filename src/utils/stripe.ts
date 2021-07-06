@@ -10,15 +10,6 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_TEST as string, {
     apiVersion: "2020-08-27",
 });
 
-// Get a list of products
-export async function getProducts() {
-    // Get a list of products
-    const products = (await stripe.products.list({ limit: 100 })).data;
-
-    // Return the list of products
-    return products;
-}
-
 export interface CatalogueItem {
     price: Stripe.Price;
     product: Stripe.Product;
@@ -51,72 +42,6 @@ export async function getCatalogue() {
     return items;
 }
 
-export interface ProductDetails {
-    product: Stripe.Product;
-    prices: Stripe.Price[];
-}
-
-// Get the details for a product
-export async function getProductDetails(productID: string) {
-    // Get the data asynchoronously
-    const pricesPromise = stripe.prices.list({ limit: 100 });
-    const productPromise = stripe.products.retrieve(productID);
-
-    // Get the data from the promises
-    const product = await productPromise;
-
-    // Get the prices that belong to the product
-    const prices: Stripe.Price[] = [];
-    for (const price of (await pricesPromise).data) {
-        if (price.product === productID) {
-            prices.push(price);
-        }
-    }
-
-    // ****** We should filter items out that have one or the other not active
-
-    // Return the data
-    return { product, prices: prices } as ProductDetails;
-}
-
-interface CheckoutResponse {
-    url: string;
-    checkoutID: string;
-    customerID: string;
-}
-
-// Get the receipt from a checkout session
-export async function retrieveReceipt(checkoutSessionID: string) {
-    // Get the checkout
-    const checkoutSession = await stripe.checkout.sessions.retrieve(
-        checkoutSessionID
-    );
-
-    // Get the payment intent from the session
-    const paymentIntentID = checkoutSession.payment_intent;
-    const paymentIntent = await stripe.paymentIntents.retrieve(
-        paymentIntentID as string
-    );
-
-    // Get the url of the receipt and return it
-    const receipt = paymentIntent.charges.data[0].receipt_url;
-
-    return receipt as string;
-}
-
-export async function cartPrice(items: CartItem[]) {
-    // Get the total price of the items (quantities and prices)
-    let total = 0;
-
-    for (const item of items) {
-        const price = await stripe.prices.retrieve(item.priceID);
-        total += (price.unit_amount as number) * item.quantity;
-    }
-
-    // Return the total count
-    return total;
-}
-
 // Create a checkout session for users to pay with
 export async function createCheckoutSession(
     items: CartItem[],
@@ -124,7 +49,7 @@ export async function createCheckoutSession(
     affiliateID?: string
 ) {
     // Connect to the database
-    connectMongo();
+    await connectMongo();
 
     // Generate the items to be featured in the checkout
     const lineItems = new Array<Stripe.Checkout.SessionCreateParams.LineItem>(
@@ -154,9 +79,16 @@ export async function createCheckoutSession(
             throw new Error("No affiliate with this affiliate ID exists");
         }
 
-        // Get the amount to pay the referrer
-        const price = await cartPrice(items);
-        const payout = parseFloat((price * REFERRER_PORTION).toFixed(2));
+        // Get the total price of the items (quantities and prices)
+        let total = 0;
+
+        for (const item of items) {
+            const price = await stripe.prices.retrieve(item.priceID);
+            total += (price.unit_amount as number) * item.quantity;
+        }
+
+        // Get the amount to pay the affiliate
+        const payout = parseFloat((total * REFERRER_PORTION).toFixed(2));
 
         // Create the checkout session with the discounts applied and the amount to pay the referrer
         checkoutSession = await stripe.checkout.sessions.create({
@@ -196,26 +128,5 @@ export async function createCheckoutSession(
         url: checkoutSession.url,
         checkoutID: checkoutSession.id,
         customerID: customerID,
-    } as CheckoutResponse;
-}
-
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// -
-// Used for testing different methods
-export async function testMethod() {
-    // Check a disabled account
-    const response = await stripe.accounts.createLoginLink(
-        "acct_1J9ocC2EsaOODx7u"
-    );
-
-    return response;
+    };
 }
