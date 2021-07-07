@@ -11,7 +11,7 @@ const Shopfront: NextPage<Props> = ({ catalogue }) => {
     return (
         <>
             <header>
-                <h1>Hello world!</h1>
+                <h1>Lotion Shop</h1>
                 <p>
                     Lorem ipsum dolor sit amet consectetur, adipisicing elit.
                     Obcaecati cum officiis maxime quam consectetur autem.

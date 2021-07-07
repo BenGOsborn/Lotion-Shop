@@ -2,6 +2,7 @@ import { FC, useEffect, useState } from "react";
 import Nav from "./nav";
 import { cartContext } from "../utils/cart";
 import Display from "./display";
+import Footer from "./footer";
 
 export interface CartItem {
     priceID: string;
@@ -21,12 +22,15 @@ const Layout: FC<{}> = ({ children }) => {
         }
     }, []);
 
+    // Add google tag manager in here for tracking analytics and facebook pixel
+
     return (
         <>
             <cartContext.Provider value={[cart, setCart]}>
                 <Nav />
                 <main>{children}</main>
                 <Display />
+                <Footer />
             </cartContext.Provider>
         </>
     );

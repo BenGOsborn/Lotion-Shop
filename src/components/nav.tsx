@@ -1,6 +1,7 @@
 import { FC, useContext, useEffect, useState } from "react";
 import { cartContext } from "../utils/cart";
 import Link from "next/link";
+import styles from "../styles/Nav.module.scss";
 
 const Nav: FC<{}> = () => {
     // Initialize the context
@@ -19,7 +20,7 @@ const Nav: FC<{}> = () => {
     }, [cart]);
 
     return (
-        <nav>
+        <nav className={styles.nav}>
             <Link href="/">
                 <a>
                     <h1>Lotion Shop</h1>

@@ -1,8 +1,11 @@
+@import "variables";
+
 html,
 body {
     padding: 0;
     margin: 0;
     font-family: Roboto, Arial, sans-serif;
+    background-color: $backgroundMain;
 }
 
 a {

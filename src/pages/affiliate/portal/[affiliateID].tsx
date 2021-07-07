@@ -18,10 +18,14 @@ const Onboarding: NextPage<Props> = ({ redirect, affiliateID }) => {
     // Get the params
     useEffect(() => {
         if (!redirect) {
-            // Get the password
+            // Get the password and exit if not given
             const password = prompt(
                 `Create a password for affiliate with ID '${affiliateID}' (or enter your existing one)`
             );
+            if (!password) {
+                router.push("/");
+                return;
+            }
 
             // Get the onboarding link and redirect to it
             axios
