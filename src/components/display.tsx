@@ -3,6 +3,7 @@ import axios, { AxiosError } from "axios";
 import { ITEMS_PER_ROW } from "../utils/constants";
 import { CatalogueItem } from "../utils/stripe";
 import DisplayCard from "./displayCard";
+import styles from "../styles/Display.module.scss";
 
 const Display: FC<{}> = () => {
     // Store the content
@@ -29,7 +30,7 @@ const Display: FC<{}> = () => {
             // A list of the items in a row
             <div>
                 <h4>Items you may be interested in</h4>
-                <div>
+                <div className={styles.row}>
                     {catalogue.map((item, i) => {
                         return (
                             <DisplayCard

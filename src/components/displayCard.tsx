@@ -6,6 +6,7 @@ import {
     addToCart,
     itemInCart,
 } from "../utils/cart";
+import styles from "../styles/DisplayCard.module.scss";
 
 // Specify the props here
 
@@ -26,7 +27,7 @@ const DisplayCard: FC<Props> = (props) => {
     const [cart, setCart] = useContext(cartContext);
 
     return (
-        <div>
+        <div className={styles.card}>
             <div>
                 <Link href={`/shop/${props.priceID}`}>
                     <a>
