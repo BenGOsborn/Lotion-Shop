@@ -8,11 +8,8 @@ body {
     background-color: $backgroundMain;
 }
 
-a {
-    color: inherit;
-    text-decoration: none;
-}
-
 * {
     box-sizing: border-box;
+    text-decoration: none;
+    color: inherit;
 }

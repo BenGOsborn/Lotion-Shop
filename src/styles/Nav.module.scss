@@ -3,4 +3,31 @@
 .nav {
     padding: 10px 5%;
     background-color: $primaryMain;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.4);
+
+    h1 {
+        font-size: $fontTitle;
+        color: $backgroundMain;
+        transition: all 0.2s ease 0s;
+        &:hover {
+            color: $primaryLight;
+        }
+    }
+
+    ul {
+        list-style: none;
+        li {
+            font-size: $fontDefault;
+            color: $backgroundMain;
+            transition: all 0.2s ease 0s;
+            &:hover {
+                color: $primaryLight;
+            }
+        }
+    }
 }

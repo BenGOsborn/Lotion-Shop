@@ -2,6 +2,7 @@ import { GetStaticProps, NextPage } from "next";
 import { CatalogueItem, getCatalogue } from "../utils/stripe";
 import DisplayCard from "../components/displayCard";
 import { ITEMS_PER_ROW } from "../utils/constants";
+import styles from "../styles/Shopfront.module.scss";
 
 interface Props {
     catalogue: CatalogueItem[];
@@ -9,14 +10,17 @@ interface Props {
 
 const Shopfront: NextPage<Props> = ({ catalogue }) => {
     return (
-        <>
+        <div className={styles.header}>
             <header>
-                <h1>Lotion Shop</h1>
-                <p>
-                    Lorem ipsum dolor sit amet consectetur, adipisicing elit.
-                    Obcaecati cum officiis maxime quam consectetur autem.
-                </p>
-                <a href="#shop">Shop Now</a>
+                <div>
+                    <h1>Lotion Shop</h1>
+                    <p>
+                        Lorem ipsum dolor sit amet consectetur, adipisicing
+                        elit. Obcaecati cum officiis maxime quam consectetur
+                        autem.
+                    </p>
+                    <a href="#shop">Shop Now</a>
+                </div>
             </header>
             <div id="shop">
                 {catalogue.map((_, i) => {
@@ -50,7 +54,7 @@ const Shopfront: NextPage<Props> = ({ catalogue }) => {
                     }
                 })}
             </div>
-        </>
+        </div>
     );
 };
 
