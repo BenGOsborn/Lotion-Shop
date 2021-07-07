@@ -88,7 +88,7 @@ export default async function onboarding(
         }
 
         // Check if the password has been submitted OR make a new password
-        if (affiliate.password === null) {
+        if (!affiliate.password) {
             // Hash the password
             const salt = await bcrypt.genSalt();
             const hashedPassword = await bcrypt.hash(password, salt);

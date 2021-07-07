@@ -10,7 +10,7 @@ export default async function test(req: NextApiRequest, res: NextApiResponse) {
         await connectMongo();
 
         const response = await stripe.accountLinks.create({
-            account: "acct_1JASeK2ErEr1UnWL",
+            account: "acct_1JAXaF2EL8MmmouM",
             type: "account_onboarding",
             refresh_url: `${siteURL}/affiliate/portal`,
             return_url: `${siteURL}/affiliate/portal`,
