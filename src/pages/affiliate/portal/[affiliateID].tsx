@@ -18,37 +18,26 @@ const Onboarding: NextPage<Props> = ({ redirect, affiliateID }) => {
     // Get the params
     useEffect(() => {
         if (!redirect) {
-            // Create a prompt to create a password
+            // Get the password
+            const password = prompt(
+                `Create a password for affiliate with ID '${affiliateID}'`
+            );
 
-            // Whether the operation was successful or not
-            let success = false;
-
-            while (!success) {
-                // Get the password and send it
-                const password = prompt(
-                    `Create a password for affiliate with ID '${affiliateID}'`
-                );
-
-                // If there is a password make a request to the API route to get an onboarding link which we will redirect to
-                if (password) {
-                    axios
-                        .patch<string>("/api/affiliate", {
-                            affiliateID,
-                            password,
-                        } as OnboardParams)
-                        .then((result) => {
-                            // Set success
-                            success = true;
-
-                            // Redirect to the onboarding URL
-                            router.push(result.data);
-                        })
-                        .catch((error: AxiosError<string>) => {
-                            // Log the error message
-                            alert(error.response?.data);
-                        });
-                }
-            }
+            // Get the onboarding link and redirect to it
+            axios
+                .patch<string>("/api/affiliate", {
+                    affiliateID,
+                    password,
+                } as OnboardParams)
+                .then((result) => {
+                    // Redirect to the onboarding URL
+                    router.push(result.data);
+                })
+                .catch((error: AxiosError<string>) => {
+                    // Log the error message and reload the page
+                    alert(error.response?.data);
+                    router.reload();
+                });
         }
     }, []);
 

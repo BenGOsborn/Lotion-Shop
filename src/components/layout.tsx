@@ -1,6 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import Nav from "./nav";
 import { cartContext } from "../utils/cart";
+import Display from "./display";
 
 export interface CartItem {
     priceID: string;
@@ -25,6 +26,7 @@ const Layout: FC<{}> = ({ children }) => {
             <cartContext.Provider value={[cart, setCart]}>
                 <Nav />
                 <main>{children}</main>
+                <Display />
             </cartContext.Provider>
         </>
     );

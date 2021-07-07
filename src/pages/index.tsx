@@ -1,6 +1,7 @@
 import { GetStaticProps, NextPage } from "next";
 import { CatalogueItem, getCatalogue } from "../utils/stripe";
 import DisplayCard from "../components/displayCard";
+import { ITEMS_PER_ROW } from "../utils/constants";
 
 interface Props {
     catalogue: CatalogueItem[];
@@ -19,16 +20,12 @@ const Shopfront: NextPage<Props> = ({ catalogue }) => {
             </header>
             <div id="shop">
                 {catalogue.map((_, i) => {
-                    // Declare the number of items per row
-                    const PER_ROW = 4;
-
                     // List out the rows
-                    // ******** I WANT A SEPERATE ROW IF ITEMS ACROSS THE BOTTOM OF THE PAGE FOR EACH OF THE PAGES
-                    if (i % PER_ROW === 0) {
+                    if (i % ITEMS_PER_ROW === 0) {
                         return (
                             <div key={i}>
                                 {catalogue
-                                    .slice(i, i + PER_ROW)
+                                    .slice(i, i + ITEMS_PER_ROW)
                                     .map((item, i) => {
                                         return (
                                             <DisplayCard

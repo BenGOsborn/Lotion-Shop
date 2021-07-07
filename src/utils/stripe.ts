@@ -21,13 +21,13 @@ export async function getCatalogue() {
     const products = (await productsPromise).data;
 
     // Initialize and fill the catalogue
-    const items = new Array<CatalogueItem>(prices.length);
+    const items: CatalogueItem[] = [];
 
     for (const [i, price] of prices.entries()) {
         for (const product of products) {
             if (price.product === product.id) {
                 if (product.active && price.active) {
-                    items[i] = { price, product };
+                    items.push({ price, product });
                 }
             }
         }

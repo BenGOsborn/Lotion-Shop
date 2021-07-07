@@ -1,16 +1,25 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import AffiliateSchema from "../../../mongooseModels/affiliate";
 import connectMongo from "../../../utils/connectMongo";
+import { siteURL } from "../../../utils/constants";
 import { stripe } from "../../../utils/stripe";
 
 export default async function admin(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "POST") {
         // Get the params from the request
-        const { affiliateID }: { affiliateID: string } = req.body;
+        const {
+            adminPassword,
+            affiliateID,
+        }: { adminPassword: string; affiliateID: string } = req.body;
 
         // Verify the affiliate ID is given
-        if (!affiliateID) {
-            return res.status(400).end("Affiliate ID is required");
+        if (!adminPassword || !affiliateID) {
+            return res.status(400).end("Missing parameter");
+        }
+
+        // Verify the password
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
+            return res.status(400).end("Invalid password");
         }
 
         // Initialize the database
@@ -30,21 +39,23 @@ export default async function admin(req: NextApiRequest, res: NextApiResponse) {
         await AffiliateSchema.create({ affiliateID, accountID });
 
         // Return the affiliate link
-        return res.status(200).end("Successfully initialized affiliate");
+        return res
+            .status(200)
+            .end(`${siteURL}/affiliate/portal/${affiliateID}`);
     } else if (req.method === "DELETE") {
         // Get the params from the request
         const {
-            password,
+            adminPassword,
             affiliateID,
-        }: { password: string; affiliateID: string } = req.body;
+        }: { adminPassword: string; affiliateID: string } = req.body;
 
         // Verify the params are given
-        if (!password || !affiliateID) {
+        if (!adminPassword || !affiliateID) {
             return res.status(400).end("Missing parameter");
         }
 
         // Verify the password
-        if (password !== process.env.ADMIN_PASSWORD) {
+        if (adminPassword !== process.env.ADMIN_PASSWORD) {
             return res.status(403).end("Invalid password");
         }
 

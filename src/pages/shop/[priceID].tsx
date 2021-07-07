@@ -66,11 +66,11 @@ const ProductPage: NextPage<Props> = ({ product, price }) => {
                         >
                             +
                         </a>
+                        <div>
+                            <Link href="/checkout">Checkout</Link>
+                        </div>
                     </>
                 )}
-            </div>
-            <div>
-                <Link href="/checkout">View Cart</Link>
             </div>
         </>
     );

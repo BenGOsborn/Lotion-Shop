@@ -135,14 +135,12 @@ const Checkout: NextPage<Props> = () => {
                                             </a>
                                         </td>
                                         <td>
-                                            $
-                                            {`${(item.price / 100).toFixed(
+                                            {`$${(item.price / 100).toFixed(
                                                 2
                                             )} ${item.currency.toUpperCase()}`}
                                         </td>
                                         <td>
-                                            $
-                                            {`${(
+                                            {`$${(
                                                 (item.price * item.quantity) /
                                                 100
                                             ).toFixed(
@@ -152,36 +150,12 @@ const Checkout: NextPage<Props> = () => {
                                     </tr>
                                 );
                             })}
-                            <tr>
-                                <td>Total</td>
-                                <td>
-                                    {checkoutItems.reduce(
-                                        (accumulator, current) =>
-                                            accumulator + current.quantity,
-                                        0
-                                    )}
-                                </td>
-                                <td></td>
-                                <td>
-                                    {" "}
-                                    {/* How am I going to handle multiple currencies (I need to do some sort of conversion UGH) */}
-                                    $
-                                    {(
-                                        checkoutItems.reduce(
-                                            (accumulator, current) =>
-                                                accumulator +
-                                                current.price *
-                                                    current.quantity,
-                                            0
-                                        ) / 100
-                                    ).toFixed(2)}
-                                </td>
-                            </tr>
                         </tbody>
                     </table>
                     <a href="#" onClick={onCheckout}>
                         Checkout
                     </a>
+                    <Link href="/">Continue Shopping</Link>
                 </>
             ) : (
                 <p>

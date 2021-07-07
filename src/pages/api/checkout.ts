@@ -97,7 +97,7 @@ export default async function catalogue(
                                     allowed_countries: ["AU"],
                                 },
                                 shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
-                                automatic_tax: { enabled: true },
+                                allow_promotion_codes: true,
                                 payment_intent_data: {
                                     transfer_data: {
                                         amount: payout,
@@ -123,7 +123,7 @@ export default async function catalogue(
                 mode: "payment", // Later on if I want to set up subscriptions im most likely going to have to set this conditionally
                 shipping_address_collection: { allowed_countries: ["AU"] },
                 shipping_rates: [SHIPPING_ID_NORMAL], // The option for there to be premium shipping options should exist later as upsells (enums of different shipping IDs)
-                automatic_tax: { enabled: true }, // **** Please look more into this (should I use the tax_id_collection instead ?)
+                allow_promotion_codes: true,
             });
         }
 

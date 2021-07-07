@@ -33,8 +33,8 @@ const DisplayCard: FC<Props> = (props) => {
                         <img
                             src={props.images[0] as any}
                             alt={props.name}
-                            width={200}
-                            height={200}
+                            width={150}
+                            height={150}
                         />
                         <h3>{props.name}</h3>
                         <h4>{`$${

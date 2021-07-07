@@ -52,6 +52,10 @@ export default async function onboarding(
         // Return the dashboard link
         res.status(200).end(dashboardLink.url);
     } else if (req.method === "PATCH") {
+        // *********** Maybe we should have the password created ONCE and then refer back to that password
+        // Make some sort of first time password - check if the password is null - if it is then it should be modified, else it should be checked
+        // Change the calling route to say (new password if you havent entered a password before)
+
         // Update the specified password and redirect them to an onbording link
 
         // Get the params from the request
@@ -78,8 +82,9 @@ export default async function onboarding(
         }
 
         // Now verify that the affiliate is not verified
-        const detailsSubmitted = (await stripe.accounts.retrieve(affiliateID))
-            .details_submitted;
+        const detailsSubmitted = (
+            await stripe.accounts.retrieve(affiliate.accountID)
+        ).details_submitted;
         if (detailsSubmitted) {
             return res
                 .status(400)

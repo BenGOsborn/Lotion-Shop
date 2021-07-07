@@ -10,40 +10,29 @@ const Portal: NextPage<Props> = () => {
     const router = useRouter();
 
     useEffect(() => {
-        // Get the details and attempt to redirect to the affiliates Stripe dashboard page
+        // Get the affiliate ID
+        const affiliateID = prompt(
+            "Enter your affiliate ID (found on the end of your onboarding link)"
+        );
 
-        // Get the login details and make a request
-        let success = false;
+        // Get the password
+        const password = prompt("Enter your password");
 
-        while (!success) {
-            // Get the affiliate ID
-            const affiliateID = prompt(
-                "Enter your affiliate ID (found on the end of your onboarding link)"
-            );
-            if (!affiliateID) continue;
-
-            // Get the password
-            const password = prompt("Enter your password");
-            if (!affiliateID) continue;
-
-            // Make a request to the API to get the dashboard link
-            axios
-                .post<string>("/api/affiliate", {
-                    affiliateID,
-                    password,
-                } as OnboardParams)
-                .then((result) => {
-                    // Set success
-                    success = true;
-
-                    // Redirect to the link
-                    router.push(result.data);
-                })
-                .catch((error: AxiosError<string>) =>
-                    // Log the error message
-                    alert(error.response?.data)
-                );
-        }
+        // Make a request to the API to get the dashboard link
+        axios
+            .post<string>("/api/affiliate", {
+                affiliateID,
+                password,
+            } as OnboardParams)
+            .then((result) => {
+                // Redirect to the link
+                router.push(result.data);
+            })
+            .catch((error: AxiosError<string>) => {
+                // Log the error message and reload the page
+                alert(error.response?.data);
+                router.reload();
+            });
     }, []);
 
     return null;
