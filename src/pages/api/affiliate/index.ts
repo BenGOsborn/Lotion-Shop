@@ -19,7 +19,7 @@ export default async function onboarding(
         // Pass the correct password and then redirect to the dashboard
 
         // Initialize the database
-        connectMongo();
+        await connectMongo();
 
         // Get the params from the request
         const { affiliateID, password }: OnboardParams = req.body;

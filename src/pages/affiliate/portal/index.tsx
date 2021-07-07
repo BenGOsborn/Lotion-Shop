@@ -1,7 +1,4 @@
-import { GetServerSideProps, NextPage } from "next";
-import { stripe } from "../../../utils/stripe";
-import connectMongo from "../../../utils/connectMongo";
-import AffiliateSchema from "../../../mongooseModels/affiliate";
+import { NextPage } from "next";
 import { useEffect } from "react";
 import { useRouter } from "next/dist/client/router";
 import axios, { AxiosError } from "axios";
@@ -51,3 +48,5 @@ const Portal: NextPage<Props> = () => {
 
     return null;
 };
+
+export default Portal;

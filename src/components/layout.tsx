@@ -1,8 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import Nav from "./nav";
 import { cartContext } from "../utils/cart";
-import axios from "axios";
-import { CatalogueItem } from "../utils/stripe";
 
 export interface CartItem {
     priceID: string;
@@ -17,26 +15,8 @@ const Layout: FC<{}> = ({ children }) => {
     useEffect(() => {
         const localCart = localStorage.getItem("cart");
         if (localCart) {
-            // Parse the items from their string form
-            const tempCart = JSON.parse(localCart) as CartItem[];
-
-            // Get the full catalogue of items
-            axios
-                .get<CatalogueItem[]>("/api/catalogue")
-                .then((res) => {
-                    // Get a list of valid prices from the catalogue
-                    const prices = res.data.map((item) => item.price.id);
-
-                    // Filter out the cart items not in the catalogue and set that as the state
-                    const filtered = tempCart.filter((item) =>
-                        prices.includes(item.priceID)
-                    );
-
-                    // Update the local storage and the cart
-                    localStorage.setItem("cart", JSON.stringify(filtered));
-                    setCart(filtered);
-                })
-                .catch(() => setCart(tempCart));
+            // Parse the items from their string form and store them in the state
+            setCart(JSON.parse(localCart));
         }
     }, []);
 

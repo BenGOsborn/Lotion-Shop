@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useContext } from "react";
+import { FC, useContext } from "react";
 import {
     cartContext,
     removeFromCart,
@@ -15,21 +15,20 @@ interface Props {
     images: string[];
     price: number;
     currency: string;
-    productID: string;
     priceID: string;
 }
 
 // I also want to have the description pop up over the image when hovered
 // Convert the img tag into image
 
-const DisplayCard = (props: Props) => {
+const DisplayCard: FC<Props> = (props) => {
     // Initialize the context of the cart
     const [cart, setCart] = useContext(cartContext);
 
     return (
         <>
             <div>
-                <Link href={`/shop/${props.productID}`}>
+                <Link href={`/shop/${props.priceID}`}>
                     <a>
                         <img
                             src={props.images[0] as any}
@@ -45,7 +44,7 @@ const DisplayCard = (props: Props) => {
                 </Link>
             </div>
             <div>
-                <Link href={`/shop/${props.productID}`}>View More</Link>
+                <Link href={`/shop/${props.priceID}`}>View More</Link>
             </div>
             <div>
                 {itemInCart(props.priceID, cart) === -1 ? (
@@ -83,6 +82,9 @@ const DisplayCard = (props: Props) => {
                         </a>
                     </>
                 )}
+            </div>
+            <div>
+                <Link href="/checkout">View Cart</Link>
             </div>
         </>
     );

@@ -5,7 +5,8 @@ import connectMongo from "../../utils/connectMongo";
 export default async function test(req: NextApiRequest, res: NextApiResponse) {
     // Make sure this request is not accessed on production
     if (process.env.NODE_ENV !== "production") {
-        // Test out some code through the test API route
+        // Connect to the database
+        await connectMongo();
 
         const response = await stripe.accounts.retrieve(
             "acct_1JA14s2EwG5uxF7G"

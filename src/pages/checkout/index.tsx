@@ -1,6 +1,3 @@
-// This page is going to display the items in the checkout and allow the person to gather more if they wish
-// Make sure to get the payment intent before proceeding to the checkout and storing it so the user can view their receipt
-
 import axios, { AxiosError } from "axios";
 import { NextPage } from "next";
 import { MouseEvent, useContext, useEffect, useState } from "react";
@@ -16,6 +13,7 @@ interface CheckoutItems {
     quantity: number;
     price: number;
     priceID: string;
+    currency: string;
 }
 
 export interface Status {
@@ -57,6 +55,7 @@ const Checkout: NextPage<Props> = () => {
                             quantity: tuples[index][1] as number,
                             price: item.price.unit_amount as number,
                             priceID: item.price.id,
+                            currency: item.price.currency,
                         });
                     }
                 });
@@ -73,7 +72,9 @@ const Checkout: NextPage<Props> = () => {
         // Prevent the page from executing navigation
         e.preventDefault();
 
-        // Get the checkout link (contains cookies) and set the cookies it gets from them
+        // ******* If really necessary I can add a way to filter out old items from the catalogue (it should be updated enough to not happen though)
+
+        // Get the checkout link
         axios
             .post<string>("/api/checkout", { items: cart })
             .then((res) => {
@@ -85,8 +86,6 @@ const Checkout: NextPage<Props> = () => {
                 setStatus({ success: false, log: error.response?.data });
             });
     };
-
-    // Now here I want to provide a layout of all of the different items and adjustments for them
 
     return (
         <>
@@ -136,14 +135,19 @@ const Checkout: NextPage<Props> = () => {
                                             </a>
                                         </td>
                                         <td>
-                                            ${(item.price / 100).toFixed(2)}
+                                            $
+                                            {`${(item.price / 100).toFixed(
+                                                2
+                                            )} ${item.currency.toUpperCase()}`}
                                         </td>
                                         <td>
                                             $
-                                            {(
+                                            {`${(
                                                 (item.price * item.quantity) /
                                                 100
-                                            ).toFixed(2)}
+                                            ).toFixed(
+                                                2
+                                            )} ${item.currency.toUpperCase()}`}
                                         </td>
                                     </tr>
                                 );
@@ -159,6 +163,8 @@ const Checkout: NextPage<Props> = () => {
                                 </td>
                                 <td></td>
                                 <td>
+                                    {" "}
+                                    {/* How am I going to handle multiple currencies (I need to do some sort of conversion UGH) */}
                                     $
                                     {(
                                         checkoutItems.reduce(

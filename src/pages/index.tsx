@@ -44,7 +44,6 @@ const Shopfront: NextPage<Props> = ({ catalogue }) => {
                                                         .unit_amount as number
                                                 }
                                                 currency={item.price.currency}
-                                                productID={item.product.id}
                                                 priceID={item.price.id}
                                             />
                                         );

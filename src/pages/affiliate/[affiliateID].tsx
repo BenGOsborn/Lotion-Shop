@@ -18,7 +18,7 @@ export const getServerSideProps: GetServerSideProps = async ({
     const affiliateID: string = (params as any).affiliateID;
 
     // Initialize database
-    connectMongo();
+    await connectMongo();
 
     // Get the affiliate with the specified ID
     const affiliate = await AffiliateSchema.findOne({ affiliateID });

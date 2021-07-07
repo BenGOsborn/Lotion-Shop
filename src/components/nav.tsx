@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import { cartContext } from "../utils/cart";
 import Link from "next/link";
 
-const Nav = () => {
+const Nav: FC<{}> = () => {
     // Initialize the context
     const [cart] = useContext(cartContext);
 
