@@ -20,7 +20,7 @@ const Onboarding: NextPage<Props> = ({ redirect, affiliateID }) => {
         if (!redirect) {
             // Get the password
             const password = prompt(
-                `Create a password for affiliate with ID '${affiliateID}'`
+                `Create a password for affiliate with ID '${affiliateID}' (or enter your existing one)`
             );
 
             // Get the onboarding link and redirect to it

@@ -52,11 +52,7 @@ export default async function onboarding(
         // Return the dashboard link
         res.status(200).end(dashboardLink.url);
     } else if (req.method === "PATCH") {
-        // *********** Maybe we should have the password created ONCE and then refer back to that password
-        // Make some sort of first time password - check if the password is null - if it is then it should be modified, else it should be checked
-        // Change the calling route to say (new password if you havent entered a password before)
-
-        // Update the specified password and redirect them to an onbording link
+        // Create a new password for the affiliate OR login using existing one and redirect to onboarding link
 
         // Get the params from the request
         const { affiliateID, password }: OnboardParams = req.body;
@@ -91,15 +87,27 @@ export default async function onboarding(
                 .end("Details have already been submitted for this affiliate");
         }
 
-        // Hash the password
-        const salt = await bcrypt.genSalt();
-        const hashedPassword = await bcrypt.hash(password, salt);
+        // Check if the password has been submitted OR make a new password
+        if (affiliate.password === null) {
+            // Hash the password
+            const salt = await bcrypt.genSalt();
+            const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Store the password in the database
-        await AffiliateSchema.updateOne(
-            { affiliateID },
-            { $set: { password: hashedPassword } }
-        );
+            // Store the password in the database
+            await AffiliateSchema.updateOne(
+                { affiliateID },
+                { $set: { password: hashedPassword } }
+            );
+        } else {
+            // Compare the passwords and return error if they dont match
+            const passwordsMatch = await bcrypt.compare(
+                password,
+                affiliate.password as string
+            );
+            if (!passwordsMatch) {
+                return res.status(403).end("Invalid password");
+            }
+        }
 
         // Create an onboarding link for the affiliate
         const onboardingLink = await stripe.accountLinks.create({

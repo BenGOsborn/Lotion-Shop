@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { stripe } from "../../utils/stripe";
 import connectMongo from "../../utils/connectMongo";
+import { siteURL } from "../../utils/constants";
 
 export default async function test(req: NextApiRequest, res: NextApiResponse) {
     // Make sure this request is not accessed on production
@@ -8,9 +9,12 @@ export default async function test(req: NextApiRequest, res: NextApiResponse) {
         // Connect to the database
         await connectMongo();
 
-        const response = await stripe.accounts.retrieve(
-            "acct_1JA14s2EwG5uxF7G"
-        );
+        const response = await stripe.accountLinks.create({
+            account: "acct_1JASeK2ErEr1UnWL",
+            type: "account_onboarding",
+            refresh_url: `${siteURL}/affiliate/portal`,
+            return_url: `${siteURL}/affiliate/portal`,
+        });
 
         // Send the response
         return res.status(200).json(response);
