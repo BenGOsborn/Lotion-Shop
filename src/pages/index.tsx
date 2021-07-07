@@ -27,7 +27,7 @@ const Shopfront: NextPage<Props> = ({ catalogue }) => {
                     // List out the rows
                     if (i % ITEMS_PER_ROW === 0) {
                         return (
-                            <div key={i}>
+                            <div key={i} className={styles.row}>
                                 {catalogue
                                     .slice(i, i + ITEMS_PER_ROW)
                                     .map((item, i) => {

@@ -26,7 +26,7 @@ const DisplayCard: FC<Props> = (props) => {
     const [cart, setCart] = useContext(cartContext);
 
     return (
-        <>
+        <div>
             <div>
                 <Link href={`/shop/${props.priceID}`}>
                     <a>
@@ -86,7 +86,7 @@ const DisplayCard: FC<Props> = (props) => {
             <div>
                 <Link href="/checkout">View Cart</Link>
             </div>
-        </>
+        </div>
     );
 };
 

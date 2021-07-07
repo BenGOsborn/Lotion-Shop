@@ -27,7 +27,7 @@ const Display: FC<{}> = () => {
     if (catalogue.length > 0) {
         return (
             // A list of the items in a row
-            <>
+            <div>
                 <h4>Items you may be interested in</h4>
                 <div>
                     {catalogue.map((item, i) => {
@@ -44,7 +44,7 @@ const Display: FC<{}> = () => {
                         );
                     })}
                 </div>
-            </>
+            </div>
         );
     } else {
         return null;

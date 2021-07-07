@@ -1,40 +1,50 @@
 @import "variables";
-
-// Look at this for the styling inspiration - https://www.youtube.com/watch?v=XN5elYWiSuw&t=910s
+@import "row";
 
 .header {
     header {
         position: relative;
-        background: linear-gradient(
-                rgba(57, 207, 37, 0.5),
-                rgba(34, 114, 23, 0.5)
-            ),
-            url(https://images.pexels.com/photos/1072179/pexels-photo-1072179.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260);
+        background-image: url(https://images.pexels.com/photos/1072179/pexels-photo-1072179.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260);
         background-size: cover;
-        height: 500px;
-        padding: 20px 10%;
+        height: 475px;
+        border-bottom: 20px solid $accentMain;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+
+        div {
+            margin: 0;
+            width: 80%;
+            height: 80%;
+        }
 
         h1 {
             color: $backgroundMain;
+            text-transform: uppercase;
             font-size: 60px;
         }
 
         p {
-            color: $backgroundAccent;
+            margin: 0 auto 60px auto;
+            color: $backgroundMain;
             font-size: 22px;
+            width: 60%;
         }
 
         a {
+            text-transform: uppercase;
             color: $primaryMain;
             font-weight: 600;
             font-size: 30px;
             padding: 15px;
             border-radius: 5px;
             background-color: $backgroundMain;
+            transition: all 0.2s ease 0s;
+            &:hover {
+                background-color: $backgroundAccent;
+                color: $backgroundMain;
+            }
         }
-
-        text-align: center;
-
-        border-bottom: 20px solid $accentMain;
     }
 }
