@@ -5,5 +5,46 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 50px;
+    margin: 50px auto;
+    width: 100%;
+}
+
+.tableWrapper {
+    overflow: hidden;
+    overflow-x: scroll;
+    width: 50%;
+
+    table {
+        margin: 20px auto;
+        border-collapse: collapse;
+        font-size: 20px;
+        text-align: right;
+        overflow: hidden;
+        border-radius: 10px;
+
+        thead {
+            font-size: 18px;
+            font-weight: 600;
+            color: $backgroundMain;
+
+            tr {
+                background-color: $primaryMain;
+                border-bottom: 7px solid $primaryLight;
+            }
+        }
+
+        th,
+        td {
+            padding: 10px 40px;
+        }
+
+        tbody {
+            tr {
+                background-color: $backgroundMain;
+                &:nth-child(2) {
+                    background-color: $backgroundAccent;
+                }
+            }
+        }
+    }
 }

@@ -90,73 +90,76 @@ const Checkout: NextPage<Props> = () => {
         <div className={styles.checkout}>
             {checkoutItems.length > 0 ? (
                 <>
-                    <table>
-                        <thead>
-                            <tr>
-                                <td>Name</td>
-                                <td>Quantity</td>
-                                <td>Price Per Item</td>
-                                <td>Price</td>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {checkoutItems.map((item, index) => {
-                                return (
-                                    <tr key={index}>
-                                        <td>
-                                            <Link
-                                                href={`/shop/${item.priceID}`}
-                                            >
-                                                {item.name}
-                                            </Link>
-                                        </td>
-                                        <td>
-                                            <a
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    removeFromCart(
-                                                        item.priceID,
-                                                        cart,
-                                                        setCart
-                                                    );
-                                                }}
-                                            >
-                                                -
-                                            </a>
-                                            <span>{item.quantity}</span>
-                                            <a
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    addToCart(
-                                                        item.priceID,
-                                                        cart,
-                                                        setCart
-                                                    );
-                                                }}
-                                            >
-                                                +
-                                            </a>
-                                        </td>
-                                        <td>
-                                            {`$${(item.price / 100).toFixed(
-                                                2
-                                            )} ${item.currency.toUpperCase()}`}
-                                        </td>
-                                        <td>
-                                            {`$${(
-                                                (item.price * item.quantity) /
-                                                100
-                                            ).toFixed(
-                                                2
-                                            )} ${item.currency.toUpperCase()}`}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                    <div className={styles.tableWrapper}>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <td>Name</td>
+                                    <td>Quantity</td>
+                                    <td>Price Per Item</td>
+                                    <td>Price</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {checkoutItems.map((item, index) => {
+                                    return (
+                                        <tr key={index}>
+                                            <td>
+                                                <Link
+                                                    href={`/shop/${item.priceID}`}
+                                                >
+                                                    {item.name}
+                                                </Link>
+                                            </td>
+                                            <td>
+                                                <a
+                                                    href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        removeFromCart(
+                                                            item.priceID,
+                                                            cart,
+                                                            setCart
+                                                        );
+                                                    }}
+                                                >
+                                                    -
+                                                </a>
+                                                <span>{item.quantity}</span>
+                                                <a
+                                                    href="#"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        addToCart(
+                                                            item.priceID,
+                                                            cart,
+                                                            setCart
+                                                        );
+                                                    }}
+                                                >
+                                                    +
+                                                </a>
+                                            </td>
+                                            <td>
+                                                {`$${(item.price / 100).toFixed(
+                                                    2
+                                                )} ${item.currency.toUpperCase()}`}
+                                            </td>
+                                            <td>
+                                                {`$${(
+                                                    (item.price *
+                                                        item.quantity) /
+                                                    100
+                                                ).toFixed(
+                                                    2
+                                                )} ${item.currency.toUpperCase()}`}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
                     <a href="#" onClick={onCheckout}>
                         Checkout
                     </a>
