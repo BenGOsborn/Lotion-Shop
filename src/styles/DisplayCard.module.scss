@@ -57,14 +57,20 @@
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    width: 80%;
+    width: 100%;
 
     .pad {
         color: $backgroundMain;
         border-radius: 5px;
         background-color: #8b8b8b;
-        padding: 10px;
+        padding: 10px 15px;
         transition: all 0.2s ease 0s;
-        width: 30%;
+        &:hover {
+            background-color: $accentLight;
+        }
+    }
+
+    span {
+        background-color: #8b8b8b !important;
     }
 }
