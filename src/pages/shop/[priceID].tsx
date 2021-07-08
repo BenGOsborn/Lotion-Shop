@@ -9,6 +9,7 @@ import {
 } from "../../utils/cart";
 import { useContext } from "react";
 import Link from "next/link";
+import styles from "../../styles/ProductPage.module.scss";
 
 interface Props {
     product: Stripe.Product;
@@ -20,59 +21,60 @@ const ProductPage: NextPage<Props> = ({ product, price }) => {
     const [cart, setCart] = useContext(cartContext);
 
     return (
-        <>
-            <div>
-                <img
-                    src={product.images[0] as any} // Can there even be multiple images for this ? (have some viewable image section)
-                    alt={product.name}
-                    width={200}
-                    height={200}
-                />
-                <h3>{product.name}</h3>
-                <p>{product.description}</p>
-                <h4>{`$${
-                    (price.unit_amount as number) / 100
-                } ${price.currency.toUpperCase()}`}</h4>
-            </div>
-            <div>
-                {itemInCart(price.id, cart) === -1 ? (
-                    <a
-                        href="#"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            addToCart(price.id, cart, setCart);
-                        }}
-                    >
-                        Add To Cart
-                    </a>
-                ) : (
-                    <>
+        <div className={styles.page}>
+            <h3>{product.name}</h3>
+            <img
+                src={product.images[0] as any} // Can there even be multiple images for this ? (have some viewable image section)
+                alt={product.name}
+            />
+            <p>{product.description}</p>
+            <h4>{`$${
+                (price.unit_amount as number) / 100
+            } ${price.currency.toUpperCase()}`}</h4>
+            {itemInCart(price.id, cart) === -1 ? (
+                <a
+                    href="#"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        addToCart(price.id, cart, setCart);
+                    }}
+                    className={styles.button}
+                >
+                    Add To Cart
+                </a>
+            ) : (
+                <>
+                    <div className={styles.counter}>
                         <a
                             href="#"
                             onClick={(e) => {
                                 e.preventDefault();
                                 removeFromCart(price.id, cart, setCart);
                             }}
+                            className={styles.pad}
                         >
                             -
                         </a>
-                        <span>{cart[itemInCart(price.id, cart)].quantity}</span>
+                        <span className={styles.pad}>
+                            {cart[itemInCart(price.id, cart)].quantity}
+                        </span>
                         <a
                             href="#"
                             onClick={(e) => {
                                 e.preventDefault();
                                 addToCart(price.id, cart, setCart);
                             }}
+                            className={styles.pad}
                         >
                             +
                         </a>
-                        <div>
-                            <Link href="/checkout">Checkout</Link>
-                        </div>
-                    </>
-                )}
-            </div>
-        </>
+                    </div>
+                    <Link href="/checkout">
+                        <a className={styles.button}>Checkout</a>
+                    </Link>
+                </>
+            )}
+        </div>
     );
 };
 

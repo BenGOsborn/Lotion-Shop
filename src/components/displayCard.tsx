@@ -31,12 +31,7 @@ const DisplayCard: FC<Props> = (props) => {
             <div>
                 <Link href={`/shop/${props.priceID}`}>
                     <a>
-                        <img
-                            src={props.images[0] as any}
-                            alt={props.name}
-                            width={150}
-                            height={150}
-                        />
+                        <img src={props.images[0] as any} alt={props.name} />
                         <h3>{props.name}</h3>
                     </a>
                 </Link>
