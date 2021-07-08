@@ -7,6 +7,7 @@
     justify-content: center;
     margin: 50px auto;
     width: 100%;
+    text-align: center;
 }
 
 .tableWrapper {
@@ -35,16 +36,67 @@
 
         th,
         td {
-            padding: 10px 40px;
+            padding: 20px 40px;
         }
 
         tbody {
             tr {
                 background-color: $backgroundMain;
-                &:nth-child(2) {
+                &:nth-child(2n) {
                     background-color: $backgroundAccent;
                 }
             }
+        }
+    }
+}
+
+.content {
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40%;
+    text-align: center;
+    font-size: 20px;
+    a {
+        color: $primaryDark;
+        &:hover {
+            color: $primaryMain;
+        }
+    }
+}
+
+.buttonCheckout {
+    font-weight: 600;
+    width: 30%;
+    margin: 20px 0;
+    padding: 15px 25px;
+    border-radius: 5px;
+    color: $backgroundMain !important;
+    background-color: $primaryDark;
+    transition: all 0.2s ease 0s;
+    &:hover {
+        color: $primaryDark !important;
+        background-color: $primaryLight;
+    }
+}
+
+.message {
+    font-size: 30px;
+    font-weight: 600;
+
+    a {
+        width: 30%;
+        margin: 20px 0;
+        padding: 10px 15px;
+        border-radius: 5px;
+        color: $backgroundMain !important;
+        background-color: $primaryDark;
+        transition: all 0.2s ease 0s;
+        &:hover {
+            color: $primaryDark !important;
+            background-color: $primaryLight;
         }
     }
 }

@@ -160,21 +160,27 @@ const Checkout: NextPage<Props> = () => {
                             </tbody>
                         </table>
                     </div>
-                    <a href="#" onClick={onCheckout}>
-                        Checkout
-                    </a>
-                    <Link href="/">Continue Shopping</Link>
+                    <div className={styles.content}>
+                        <a
+                            href="#"
+                            onClick={onCheckout}
+                            className={styles.buttonCheckout}
+                        >
+                            Checkout
+                        </a>
+                        <Link href="/">Continue Shopping</Link>
+                    </div>
                 </>
             ) : (
-                <p>
+                <p className={styles.message}>
                     Cart is empty! <Link href="/">Shop now</Link>
                 </p>
             )}
             {status ? (
                 status.success ? (
-                    <p>{status.log}</p>
+                    <p className="textSuccess">{status.log}</p>
                 ) : (
-                    <p>{status.log}</p>
+                    <p className="textFail">{status.log}</p>
                 )
             ) : null}
         </div>
