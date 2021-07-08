@@ -98,3 +98,26 @@
         }
     }
 }
+
+.counter {
+    position: relative;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+
+    .pad {
+        color: $backgroundMain;
+        border-radius: 5px;
+        background-color: #8b8b8b;
+        padding: 10px 15px;
+        transition: all 0.2s ease 0s;
+        &:hover {
+            background-color: $accentLight;
+        }
+    }
+
+    span {
+        background-color: #8b8b8b !important;
+    }
+}

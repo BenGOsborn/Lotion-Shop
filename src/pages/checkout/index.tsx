@@ -111,9 +111,10 @@ const Checkout: NextPage<Props> = () => {
                                                     {item.name}
                                                 </Link>
                                             </td>
-                                            <td>
+                                            <td className={styles.counter}>
                                                 <a
                                                     href="#"
+                                                    className={styles.pad}
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         removeFromCart(
@@ -125,9 +126,12 @@ const Checkout: NextPage<Props> = () => {
                                                 >
                                                     -
                                                 </a>
-                                                <span>{item.quantity}</span>
+                                                <span className={styles.pad}>
+                                                    {item.quantity}
+                                                </span>
                                                 <a
                                                     href="#"
+                                                    className={styles.pad}
                                                     onClick={(e) => {
                                                         e.preventDefault();
                                                         addToCart(
