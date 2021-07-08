@@ -16,7 +16,7 @@ const Display: FC<{}> = () => {
             .then((result) => {
                 // Randomly select an amount of items and set the items to be them
                 const newCatalogue = [...result.data]
-                    .sort(() => Math.random())
+                    .sort(() => Math.random() - Math.random())
                     .slice(0, ITEMS_PER_ROW);
 
                 // Set the items
@@ -28,7 +28,7 @@ const Display: FC<{}> = () => {
     if (catalogue.length > 0) {
         return (
             // A list of the items in a row
-            <div>
+            <div className={styles.display}>
                 <h4>Items you may be interested in</h4>
                 <div className={styles.row}>
                     {catalogue.map((item, i) => {

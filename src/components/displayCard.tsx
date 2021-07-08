@@ -38,13 +38,13 @@ const DisplayCard: FC<Props> = (props) => {
                             height={150}
                         />
                         <h3>{props.name}</h3>
-                        <h4>{`$${
-                            props.price / 100
-                        } ${props.currency.toUpperCase()}`}</h4>
                     </a>
                 </Link>
+                <h4>{`$${
+                    props.price / 100
+                } ${props.currency.toUpperCase()}`}</h4>
             </div>
-            <div>
+            <div className={styles.button}>
                 <Link href={`/shop/${props.priceID}`}>View More</Link>
             </div>
             <div>
@@ -84,7 +84,7 @@ const DisplayCard: FC<Props> = (props) => {
                     </>
                 )}
             </div>
-            <div>
+            <div className={styles.button}>
                 <Link href="/checkout">View Cart</Link>
             </div>
         </div>
