@@ -29,16 +29,42 @@
     }
 }
 
-.button {
+@mixin button($color, $backgroundColor, $colorHover, $backgroundColorHover) {
     font-weight: 600;
+    width: 100%;
+    margin: 10px 0;
     padding: 10px 20px;
     border-radius: 5px;
-    background-color: blue;
-    color: $backgroundMain;
-    background-color: $primaryMain;
+    color: $color;
+    background-color: $backgroundColor;
     transition: all 0.2s ease 0s;
     &:hover {
-        background-color: $primaryLight;
-        color: $primaryDark;
+        color: $colorHover;
+        background-color: $backgroundColorHover;
+    }
+}
+
+.buttonDark {
+    @include button($backgroundMain, $primaryMain, $primaryDark, $primaryLight);
+}
+
+.buttonLight {
+    @include button($primaryDark, $primaryLight, $backgroundMain, $primaryMain);
+}
+
+.counter {
+    position: relative;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 80%;
+
+    .pad {
+        color: $backgroundMain;
+        border-radius: 5px;
+        background-color: #8b8b8b;
+        padding: 10px;
+        transition: all 0.2s ease 0s;
+        width: 30%;
     }
 }

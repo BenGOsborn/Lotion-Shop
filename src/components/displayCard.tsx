@@ -44,10 +44,7 @@ const DisplayCard: FC<Props> = (props) => {
                     props.price / 100
                 } ${props.currency.toUpperCase()}`}</h4>
             </div>
-            <div className={styles.button}>
-                <Link href={`/shop/${props.priceID}`}>View More</Link>
-            </div>
-            <div>
+            <div className={styles.counter}>
                 {itemInCart(props.priceID, cart) === -1 ? (
                     <a
                         href="#"
@@ -55,6 +52,7 @@ const DisplayCard: FC<Props> = (props) => {
                             e.preventDefault();
                             addToCart(props.priceID, cart, setCart);
                         }}
+                        className={styles.buttonLight}
                     >
                         Add To Cart
                     </a>
@@ -66,10 +64,11 @@ const DisplayCard: FC<Props> = (props) => {
                                 e.preventDefault();
                                 removeFromCart(props.priceID, cart, setCart);
                             }}
+                            className={styles.pad}
                         >
                             -
                         </a>
-                        <span>
+                        <span className={styles.pad}>
                             {cart[itemInCart(props.priceID, cart)].quantity}
                         </span>
                         <a
@@ -78,15 +77,19 @@ const DisplayCard: FC<Props> = (props) => {
                                 e.preventDefault();
                                 addToCart(props.priceID, cart, setCart);
                             }}
+                            className={styles.pad}
                         >
                             +
                         </a>
                     </>
                 )}
             </div>
-            <div className={styles.button}>
-                <Link href="/checkout">View Cart</Link>
-            </div>
+            <Link href={`/shop/${props.priceID}`}>
+                <a className={styles.buttonDark}>View More</a>
+            </Link>
+            <Link href="/checkout">
+                <a className={styles.buttonDark}>View Cart</a>
+            </Link>
         </div>
     );
 };

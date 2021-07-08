@@ -14,4 +14,4 @@ export const SHIPPING_ID_NORMAL = "shr_1J9GyTC7YoItP8Te9w4rQSDQ";
 export const REFERRER_PORTION = 0.15;
 
 // The number of items to display per row
-export const ITEMS_PER_ROW = 4;
+export const ITEMS_PER_ROW = 3;
