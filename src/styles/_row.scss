@@ -6,4 +6,8 @@
     align-items: center;
     margin: 20px 2%;
     padding: 30px 0;
+
+    @media screen and (max-width: $screenSmall) {
+        flex-direction: column;
+    }
 }

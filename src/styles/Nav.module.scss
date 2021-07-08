@@ -30,4 +30,13 @@
             }
         }
     }
+
+    @media screen and (max-width: $screenSmall) {
+        text-align: center;
+        flex-direction: column;
+
+        ul {
+            padding: 0;
+        }
+    }
 }

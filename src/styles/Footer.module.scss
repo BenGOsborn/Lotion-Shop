@@ -17,4 +17,13 @@
             color: $backgroundAccent;
         }
     }
+
+    @media screen and (max-width: $screenSmall) {
+        flex-direction: column;
+        text-align: center;
+
+        a {
+            margin: 20px 0;
+        }
+    }
 }

@@ -11,6 +11,8 @@
     box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
     font-size: 18px;
     width: 20%;
+    min-width: 275px;
+    height: 600px;
 
     h3 {
         font-size: 25px;
@@ -29,11 +31,18 @@
     div {
         margin: 0 0 10px 0;
     }
+
+    @media screen and (max-width: $screenSmall) {
+        margin: 20px auto;
+        box-shadow: none;
+        min-width: 100%;
+    }
 }
 
 @mixin button($color, $backgroundColor, $colorHover, $backgroundColorHover) {
     font-weight: 600;
     width: 100%;
+    min-width: 100px;
     margin: 10px 0;
     padding: 10px 20px;
     border-radius: 5px;
@@ -66,6 +75,7 @@
         border-radius: 5px;
         background-color: #8b8b8b;
         padding: 10px 15px;
+        margin: 0 5px;
         transition: all 0.2s ease 0s;
         &:hover {
             background-color: $accentLight;
