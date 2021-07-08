@@ -5,6 +5,7 @@ import { addToCart, cartContext, removeFromCart } from "../../utils/cart";
 import { CatalogueItem } from "../../utils/stripe";
 import { useRouter } from "next/dist/client/router";
 import Link from "next/link";
+import styles from "../../styles/Checkout.module.scss";
 
 interface Props {}
 
@@ -72,8 +73,6 @@ const Checkout: NextPage<Props> = () => {
         // Prevent the page from executing navigation
         e.preventDefault();
 
-        // ******* If really necessary I can add a way to filter out old items from the catalogue (it should be updated enough to not happen though)
-
         // Get the checkout link
         axios
             .post<string>("/api/checkout", { items: cart })
@@ -88,7 +87,7 @@ const Checkout: NextPage<Props> = () => {
     };
 
     return (
-        <>
+        <div className={styles.checkout}>
             {checkoutItems.length > 0 ? (
                 <>
                     <table>
@@ -104,7 +103,13 @@ const Checkout: NextPage<Props> = () => {
                             {checkoutItems.map((item, index) => {
                                 return (
                                     <tr key={index}>
-                                        <td>{item.name}</td>
+                                        <td>
+                                            <Link
+                                                href={`/shop/${item.priceID}`}
+                                            >
+                                                {item.name}
+                                            </Link>
+                                        </td>
                                         <td>
                                             <a
                                                 href="#"
@@ -169,7 +174,7 @@ const Checkout: NextPage<Props> = () => {
                     <p>{status.log}</p>
                 )
             ) : null}
-        </>
+        </div>
     );
 };
 
