@@ -34,16 +34,17 @@
 
         a {
             text-transform: uppercase;
-            color: $primaryMain;
             font-weight: 600;
             font-size: 30px;
             padding: 15px;
             border-radius: 5px;
-            background-color: $backgroundMain;
+            color: $backgroundMain;
+            background-color: $primaryMain;
+            box-shadow: 0 0 5px 5px rgba(17, 185, 73, 0.1);
             transition: all 0.2s ease 0s;
             &:hover {
-                background-color: $backgroundAccent;
-                color: $backgroundMain;
+                background-color: $primaryLight;
+                color: $primaryDark;
             }
         }
     }

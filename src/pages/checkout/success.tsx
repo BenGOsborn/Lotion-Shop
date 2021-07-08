@@ -5,6 +5,7 @@ import { useContext, useEffect } from "react";
 import { cartContext, clearCart } from "../../utils/cart";
 import Link from "next/link";
 import { stripe } from "../../utils/stripe";
+import styles from "../../styles/Success.module.scss";
 
 interface Props {
     receiptURL: string;
@@ -20,13 +21,16 @@ const Success: NextPage<Props> = ({ receiptURL }) => {
     }, []);
 
     return (
-        <p>
-            Success! You can find your receipt{" "}
-            <a href={receiptURL} target="_blank">
-                here
-            </a>
-            . <Link href="/">Continue shopping</Link>.
-        </p>
+        <div className={styles.success}>
+            <p>
+                Success! You can find your receipt{" "}
+                <a href={receiptURL} target="_blank">
+                    here
+                </a>
+                .
+            </p>
+            <Link href="/">Continue shopping</Link>
+        </div>
     );
 };
 

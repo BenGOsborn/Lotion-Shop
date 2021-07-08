@@ -10,11 +10,11 @@
     align-items: center;
     list-style: none;
     a {
-        font-size: $fontDefault;
+        font-size: 20px;
         color: $backgroundMain;
         transition: all 0.2s ease 0s;
         &:hover {
-            color: $primaryLight;
+            color: $backgroundAccent;
         }
     }
 }

@@ -8,25 +8,25 @@
     align-items: center;
     position: relative;
     z-index: 10;
-    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 5px 5px rgba(0, 0, 0, 0.3);
 
     h1 {
-        font-size: $fontTitle;
+        font-size: 30px;
         color: $backgroundMain;
         transition: all 0.2s ease 0s;
         &:hover {
-            color: $primaryLight;
+            color: $backgroundAccent;
         }
     }
 
     ul {
         list-style: none;
         li {
-            font-size: $fontDefault;
+            font-size: 20px;
             color: $backgroundMain;
             transition: all 0.2s ease 0s;
             &:hover {
-                color: $primaryLight;
+                color: $backgroundAccent;
             }
         }
     }

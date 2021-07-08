@@ -1,0 +1,22 @@
+@import "variables";
+
+.success {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    margin: 80px auto;
+    font-size: 30px;
+    width: 50%;
+
+    a {
+        font-weight: 600;
+        color: $primaryMain;
+        transition: all 0.2s ease 0s;
+
+        &:hover {
+            color: $primaryDark;
+        }
+    }
+}

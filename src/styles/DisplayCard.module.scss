@@ -51,7 +51,7 @@
 }
 
 .buttonLight {
-    @include button($primaryDark, $primaryLight, $backgroundMain, $primaryMain);
+    @include button($backgroundMain, $primaryDark, $primaryMain, $primaryLight);
 }
 
 .counter {
