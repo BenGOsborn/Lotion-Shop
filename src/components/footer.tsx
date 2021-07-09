@@ -7,7 +7,7 @@ const Footer: FC<{}> = () => {
         <footer className={styles.footer}>
             <Link href="#">{`© Copyright Lotion Shop ${new Date().getFullYear()}`}</Link>
             <Link href="/affiliate/portal">Affiliate Portal</Link>
-            <a href="" target="_blank">
+            <a href="" target="_blank" rel="noreferrer">
                 Contact Us
             </a>
             {/* Refund policy, cookie policy, privacy policy, terms and agreements etc (could probs use the ones shopify spins up) */}

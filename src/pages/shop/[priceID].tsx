@@ -12,6 +12,7 @@ import Link from "next/link";
 import styles from "../../styles/ProductPage.module.scss";
 import { siteURL } from "../../utils/constants";
 import Head from "next/head";
+import Image from "next/image";
 
 interface Props {
     product: Stripe.Product;
@@ -34,9 +35,11 @@ const ProductPage: NextPage<Props> = ({ product, price }) => {
             </Head>
             <div className={styles.page}>
                 <h3>{product.name}</h3>
-                <img
+                <Image
                     src={product.images[0] as any} // Can there even be multiple images for this ? (have some viewable image section)
-                    alt={product.name}
+                    alt={product.name as any}
+                    width={500}
+                    height={500}
                 />
                 <p>{product.description}</p>
                 <h4>{`$${

@@ -35,7 +35,7 @@ const Success: NextPage<Props> = ({ receiptURL }) => {
             <div className={styles.success}>
                 <p>
                     Success! You can find your receipt{" "}
-                    <a href={receiptURL} target="_blank">
+                    <a href={receiptURL} target="_blank" rel="noreferrer">
                         here
                     </a>
                     .
