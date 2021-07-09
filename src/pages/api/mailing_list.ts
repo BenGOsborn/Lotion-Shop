@@ -9,8 +9,7 @@ export default async function mailingList(
     // Webhook for Stripe checkout.session.completed
 
     // Get the params from the webhook
-    const { object }: { object: Stripe.Checkout.Session | undefined } =
-        req.body;
+    const object: Stripe.Checkout.Session | undefined = req.body;
 
     // Only activate on the correct sent object
     if (object?.object !== "checkout.session") {
