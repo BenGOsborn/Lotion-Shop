@@ -1,4 +1,4 @@
-# [Lotion-Shop](https://lotion-shop.herokuapp.com/)
+# [Lotion Shop](https://lotion-shop.herokuapp.com/)
 
 ## An eCommerce store that sells lotions.
 
