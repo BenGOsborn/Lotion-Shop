@@ -6,6 +6,8 @@ import { CatalogueItem } from "../../utils/stripe";
 import { useRouter } from "next/dist/client/router";
 import Link from "next/link";
 import styles from "../../styles/Checkout.module.scss";
+import Head from "next/head";
+import { siteURL } from "../../utils/constants";
 
 interface Props {}
 
@@ -87,107 +89,118 @@ const Checkout: NextPage<Props> = () => {
     };
 
     return (
-        <div className={styles.checkout}>
-            {checkoutItems.length > 0 ? (
-                <>
-                    <div className={styles.tableWrapper}>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td>Name</td>
-                                    <td>Quantity</td>
-                                    <td>Price Per Item</td>
-                                    <td>Price</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {checkoutItems.map((item, index) => {
-                                    return (
-                                        <tr key={index}>
-                                            <td>
-                                                <Link
-                                                    href={`/shop/${item.priceID}`}
-                                                >
-                                                    {item.name}
-                                                </Link>
-                                            </td>
-                                            <td className={styles.counter}>
-                                                <a
-                                                    href="#"
-                                                    className={styles.pad}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        removeFromCart(
-                                                            item.priceID,
-                                                            cart,
-                                                            setCart
-                                                        );
-                                                    }}
-                                                >
-                                                    -
-                                                </a>
-                                                <span className={styles.pad}>
-                                                    {item.quantity}
-                                                </span>
-                                                <a
-                                                    href="#"
-                                                    className={styles.pad}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        addToCart(
-                                                            item.priceID,
-                                                            cart,
-                                                            setCart
-                                                        );
-                                                    }}
-                                                >
-                                                    +
-                                                </a>
-                                            </td>
-                                            <td>
-                                                {`$${(item.price / 100).toFixed(
-                                                    2
-                                                )} ${item.currency.toUpperCase()}`}
-                                            </td>
-                                            <td>
-                                                {`$${(
-                                                    (item.price *
-                                                        item.quantity) /
-                                                    100
-                                                ).toFixed(
-                                                    2
-                                                )} ${item.currency.toUpperCase()}`}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className={styles.content}>
-                        <a
-                            href="#"
-                            onClick={onCheckout}
-                            className={styles.buttonCheckout}
-                        >
-                            Checkout
-                        </a>
-                        <Link href="/">Continue Shopping</Link>
-                    </div>
-                </>
-            ) : (
-                <p className={styles.message}>
-                    Cart is empty! <Link href="/">Shop now</Link>
-                </p>
-            )}
-            {status ? (
-                status.success ? (
-                    <p className="textSuccess">{status.log}</p>
+        <>
+            <Head>
+                <title>Checkout - Lotion Shop</title>
+                <meta name="description" content="Purchase your items here." />
+                <link rel="canonical" href={`${siteURL}/checkout`} />
+            </Head>
+            <div className={styles.checkout}>
+                {checkoutItems.length > 0 ? (
+                    <>
+                        <div className={styles.tableWrapper}>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <td>Name</td>
+                                        <td>Quantity</td>
+                                        <td>Price Per Item</td>
+                                        <td>Price</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {checkoutItems.map((item, index) => {
+                                        return (
+                                            <tr key={index}>
+                                                <td>
+                                                    <Link
+                                                        href={`/shop/${item.priceID}`}
+                                                    >
+                                                        {item.name}
+                                                    </Link>
+                                                </td>
+                                                <td className={styles.counter}>
+                                                    <a
+                                                        href="#"
+                                                        className={styles.pad}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            removeFromCart(
+                                                                item.priceID,
+                                                                cart,
+                                                                setCart
+                                                            );
+                                                        }}
+                                                    >
+                                                        -
+                                                    </a>
+                                                    <span
+                                                        className={styles.pad}
+                                                    >
+                                                        {item.quantity}
+                                                    </span>
+                                                    <a
+                                                        href="#"
+                                                        className={styles.pad}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            addToCart(
+                                                                item.priceID,
+                                                                cart,
+                                                                setCart
+                                                            );
+                                                        }}
+                                                    >
+                                                        +
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    {`$${(
+                                                        item.price / 100
+                                                    ).toFixed(
+                                                        2
+                                                    )} ${item.currency.toUpperCase()}`}
+                                                </td>
+                                                <td>
+                                                    {`$${(
+                                                        (item.price *
+                                                            item.quantity) /
+                                                        100
+                                                    ).toFixed(
+                                                        2
+                                                    )} ${item.currency.toUpperCase()}`}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className={styles.content}>
+                            <a
+                                href="#"
+                                onClick={onCheckout}
+                                className={styles.buttonCheckout}
+                            >
+                                Checkout
+                            </a>
+                            <Link href="/">Continue Shopping</Link>
+                        </div>
+                    </>
                 ) : (
-                    <p className="textFail">{status.log}</p>
-                )
-            ) : null}
-        </div>
+                    <p className={styles.message}>
+                        Cart is empty! <Link href="/">Shop now</Link>
+                    </p>
+                )}
+                {status ? (
+                    status.success ? (
+                        <p className="textSuccess">{status.log}</p>
+                    ) : (
+                        <p className="textFail">{status.log}</p>
+                    )
+                ) : null}
+            </div>
+        </>
     );
 };
 
