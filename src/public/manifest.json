@@ -1,0 +1,25 @@
+{
+    "name": "Lotion Shop",
+    "short_name": "LS",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#147531",
+    "background_color": "#ffffff",
+    "icons": [
+        {
+            "src": "favicon.ico",
+            "sizes": "16x16 32x32 48x48 64x64 128x128 256x256",
+            "type": "image/x-icon"
+        },
+        {
+            "src": "logo_192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "logo_512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
