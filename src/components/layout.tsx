@@ -3,6 +3,7 @@ import Nav from "./nav";
 import { cartContext } from "../utils/cart";
 import Display from "./display";
 import Footer from "./footer";
+import TagManager from "react-gtm-module";
 
 export interface CartItem {
     priceID: string;
@@ -13,8 +14,12 @@ const Layout: FC<{}> = ({ children }) => {
     // The state of the cart to be used across components
     const [cart, setCart] = useState<CartItem[]>([]);
 
-    // Set the context to whatever is inside the local storage
+    // Set the context to whatever is inside the local storage and initialize Google Tag Manager
     useEffect(() => {
+        // Initialize GTM
+        TagManager.initialize({ gtmId: process.env.GTM_ID as string });
+
+        // Initialize the cart
         const localCart = localStorage.getItem("cart");
         if (localCart) {
             // Parse the items from their string form and store them in the state
