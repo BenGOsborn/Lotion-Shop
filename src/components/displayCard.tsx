@@ -7,7 +7,6 @@ import {
     itemInCart,
 } from "../utils/cart";
 import styles from "../styles/DisplayCard.module.scss";
-import Image from "next/image";
 
 // Specify the props here
 
@@ -32,7 +31,7 @@ const DisplayCard: FC<Props> = (props) => {
             <div>
                 <Link href={`/shop/${props.priceID}`}>
                     <a>
-                        <Image src={props.images[0] as any} alt={props.name} />
+                        <img src={props.images[0] as any} alt={props.name} />
                         <h3>{props.name}</h3>
                     </a>
                 </Link>

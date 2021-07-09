@@ -103,7 +103,9 @@ const Checkout: NextPage<Props> = () => {
                                 <thead>
                                     <tr>
                                         <td>Name</td>
-                                        <td>Quantity</td>
+                                        <td style={{ textAlign: "center" }}>
+                                            Quantity
+                                        </td>
                                         <td>Price Per Item</td>
                                         <td>Price</td>
                                     </tr>

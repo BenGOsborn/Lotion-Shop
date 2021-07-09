@@ -4,10 +4,10 @@
 .header {
     header {
         position: relative;
-        background-image: url(https://images.pexels.com/photos/6965310/pexels-photo-6965310.jpeg?auto=compress&cs=tinysrgb&h=750&w=1260);
+        background-color: $primaryLight;
         background-size: cover;
         height: 475px;
-        border-bottom: 20px solid $accentMain;
+        border-bottom: 20px solid $primaryDark;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -45,8 +45,7 @@
             box-shadow: 0 0 5px 5px rgba(17, 185, 73, 0.1);
             transition: all 0.2s ease 0s;
             &:hover {
-                background-color: $primaryLight;
-                color: $primaryDark;
+                background-color: $primaryDark;
             }
         }
     }
