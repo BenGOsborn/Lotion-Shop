@@ -33,7 +33,7 @@
     }
 
     @media screen and (max-width: $screenSmall) {
-        margin: 20px auto;
+        margin: 10px auto;
         box-shadow: none;
         min-width: 100%;
     }
@@ -69,6 +69,7 @@
     justify-content: space-evenly;
     align-items: center;
     width: 100%;
+    font-weight: 600;
 
     .pad {
         color: $backgroundMain;
