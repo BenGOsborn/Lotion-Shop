@@ -3,11 +3,16 @@ import cookie from "cookie";
 import connectMongo from "../../utils/connectMongo";
 import AffiliateSchema from "../../mongooseModels/affiliate";
 import { stripe } from "../../utils/stripe";
+import Head from "next/head";
 
 interface Props {}
 
 const Affiliate: NextPage<Props> = () => {
-    return null;
+    return (
+        <Head>
+            <meta name="robots" content="noindex, nofollow" />
+        </Head>
+    );
 };
 
 export const getServerSideProps: GetServerSideProps = async ({

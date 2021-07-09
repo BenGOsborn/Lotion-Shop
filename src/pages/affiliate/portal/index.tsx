@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/dist/client/router";
 import axios, { AxiosError } from "axios";
 import { OnboardParams } from "../../api/affiliate";
+import Head from "next/head";
 
 interface Props {}
 
@@ -43,7 +44,11 @@ const Portal: NextPage<Props> = () => {
             });
     }, []);
 
-    return null;
+    return (
+        <Head>
+            <meta name="robots" content="noindex, nofollow" />
+        </Head>
+    );
 };
 
 export default Portal;
