@@ -2,11 +2,11 @@ import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import axios from "axios";
 
-export default async function mailingList(
+export default async function hookSubscribe(
     req: NextApiRequest,
     res: NextApiResponse
 ) {
-    // Webhook for Stripe checkout.session.completed
+    // Webhook endpoint for Stripe checkout.session.completed
 
     // Get the params from the webhook
     const { object }: { object: Stripe.Checkout.Session | undefined } =
