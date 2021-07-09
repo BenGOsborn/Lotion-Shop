@@ -9,10 +9,12 @@ export default async function hookSubscribe(
     // Webhook endpoint for Stripe checkout.session.completed
 
     // Get the params from the webhook
-    const object: Stripe.Checkout.Session | undefined = req.body;
+    const {
+        data: { object },
+    }: { data: { object: Stripe.Checkout.Session } } = req.body;
 
     // Only activate on the correct sent object
-    if (object?.object !== "checkout.session") {
+    if (object.object !== "checkout.session") {
         return res.status(400).end("Invalid object");
     }
 
